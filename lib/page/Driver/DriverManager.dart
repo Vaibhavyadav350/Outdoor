@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,23 +9,45 @@ class DriverManage extends StatefulWidget {
   @override
   _DriverManageState createState() => _DriverManageState();
 }
-
 class _DriverManageState extends State<DriverManage> {
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _otp = TextEditingController();
   List<Map<String, dynamic>> dropdownValueArray = [];
 
   Future<void> _retrieveData(String phone) async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('SpitiDriver')
+        .collection('Spiti')
+        .doc('DriverInfo')
+        .collection('DriverInfo')
         .where('phone', isEqualTo: phone)
         .get();
-
     querySnapshot.docs.forEach((doc) {
       dropdownValueArray = List<Map<String, dynamic>>.from(
           doc['Driver'] as List<dynamic>);
     });
+    setState(() {}); // Trigger a rebuild after retrieving data
   }
+
+  @override
+  void initState() {
+    super.initState();
+    // Get the user's phone number from the Firestore collection
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get()
+          .then((snapshot) {
+        if (snapshot.exists) {
+          String? phone = snapshot.data()?['phone'] as String?;
+          if (phone != null) {
+            _retrieveData(phone);
+          }
+        }
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -41,26 +64,6 @@ class _DriverManageState extends State<DriverManage> {
                 "assets/images/myinfo.jpg",
                 fit: BoxFit.cover,
                 height: 300,
-              ),
-              TextField(
-                controller: _phoneController,
-                decoration: InputDecoration(
-                  labelText: 'Enter Phone Number',
-                ),
-              ),
-              TextField(
-                controller: _otp,
-                decoration: InputDecoration(
-                  labelText: 'OTP',
-                ),
-              ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () async {
-                  await _retrieveData(_phoneController.text);
-                  setState(() {});
-                },
-                child: Text('Go to Trips'),
               ),
               SizedBox(height: 16.0),
               ListView.builder(
@@ -82,12 +85,16 @@ class _DriverManageState extends State<DriverManage> {
                       ),
                       borderRadius: BorderRadius.only(
                           topRight: Radius.circular(40.0),
-                          bottomLeft: Radius.circular(20.0)
-                      ),
-                      color: Vx.amber50,  // Green touch background color
+                          bottomLeft: Radius.circular(20.0)),
+                      color: Vx.amber50,
                     ),
                     child: ListTile(
-                      leading: Icon(Icons.home, color: Colors.lightGreen),
+                      leading: Column(
+                        children: [
+                          SizedBox(height: 10,),
+                          Icon(Icons.home, color: Colors.lightGreen),
+                        ],
+                      ),
                       title: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -96,21 +103,32 @@ class _DriverManageState extends State<DriverManage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text("Date: " + formattedDate),
-                                Text("Pax: " + dropdownValueArray[index]['pax']),
-                                Text("Phone: " + dropdownValueArray[index]['groupLeadContact']),
-                                Text("Stay: " + dropdownValueArray[index]['dropdownValue']),
+                                Text("Pax: " +
+                                    dropdownValueArray[index]['pax']),
+                                Text("Phone: " +
+                                    dropdownValueArray[index]
+                                    ['groupLeadContact']),
+                                Text("Stay: " +
+                                    dropdownValueArray[index]
+                                    ['dropdownValue']),
                               ],
                             ),
                           ),
                           InkWell(
                             onTap: () {
                               // Redirect to call page with the group lead contact number
-                              String phoneNumber = dropdownValueArray[index]['groupLeadContact'];
-                              String ph = phoneNumber.replaceAll(RegExp(r'[^0-9]'), ''); // Remove non-numeric characters from the phone number
-                              String telUrl = 'tel:$ph'; // Construct the tel URL
-                              launch(telUrl); // Launch the phone call
+                              String phoneNumber =
+                              dropdownValueArray[index]['groupLeadContact'];
+                              String ph = phoneNumber
+                                  .replaceAll(RegExp(r'[^0-9]'), '');
+                              String telUrl = 'tel:$ph';
+                              launch(telUrl);
                             },
-                            child: Icon(Icons.call, color: Colors.blue),
+                            child: Column(
+                              children: [SizedBox(height: 25,),
+                                Icon(Icons.call, color: Colors.blue),
+                              ],
+                            ),
                           ),
                         ],
                       ),

@@ -38,9 +38,9 @@ class _CollectionsState extends State<Collections> {
               ),
               child: Column(
                 children: [
-                  Image.network(FirebaseAuth.instance.currentUser!.photoURL!,height: 100,width: 1000,),
-                  SizedBox(height: 15,),
-                  Text(FirebaseAuth.instance.currentUser!.displayName!),
+                  // Image.network(FirebaseAuth.instance.currentUser!.photoURL!,height: 100,width: 1000,),
+                  // SizedBox(height: 15,),
+                  // Text(FirebaseAuth.instance.currentUser!.displayName!),
 
 
                 ],

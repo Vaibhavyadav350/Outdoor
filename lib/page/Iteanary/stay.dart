@@ -25,8 +25,17 @@ class _AddStaysState extends State<AddStays> {
         'location': locationValue})
           .then((value) => print('Option added'))
           .catchError((error) => print('Failed to add option: $error'));
-      FirebaseFirestore.instance.collection('SpitiStays').doc(optionValue).set(
+      FirebaseFirestore.instance
+          .collection('Spiti')
+          .doc('StaysInfo')
+          .collection('StaysInfo').doc(optionValue).set(
           {'phone': phoneValue});
+      FirebaseFirestore.instance
+          .collection('number')
+          .doc('StaysInfo')
+          .update({
+        'phone': FieldValue.arrayUnion([phoneValue])
+      });
       _optionController.clear();
       _phoneController.clear();
       _locationController.clear();

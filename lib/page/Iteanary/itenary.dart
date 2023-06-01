@@ -141,7 +141,9 @@ class _ItenaryState extends State<Itenary> {
       }
 
       await FirebaseFirestore.instance
-          .collection('SpitiDriver')
+          .collection('Spiti')
+          .doc('DriverInfo')
+          .collection('DriverInfo')
           .doc(selectedDriverValue[i]['Driver'])
           .update({'Driver': FieldValue.arrayUnion(dropdownStayArray)});
     }
@@ -160,8 +162,8 @@ class _ItenaryState extends State<Itenary> {
 
       await FirebaseFirestore.instance
           .collection('Spiti')
-          .doc('SpitiStays')
-          .collection('SpitiStays')
+          .doc('StaysInfo')
+          .collection('StaysInfo')
           .doc(dropdownValues[i]['dropdownValue'])
           .update({'dropdownValue': FieldValue.arrayUnion(dropdownStayArray)});
     }
@@ -201,9 +203,9 @@ class _ItenaryState extends State<Itenary> {
               ),
               child: Column(
                 children: [
-                  Image.network(FirebaseAuth.instance.currentUser!.photoURL!,height: 100,width: 1000,),
-                  SizedBox(height: 15,),
-                  Text(FirebaseAuth.instance.currentUser!.displayName!),
+                  // Image.network(FirebaseAuth.instance.currentUser!.photoURL!,height: 100,width: 1000,),
+                  // SizedBox(height: 15,),
+                  // Text(FirebaseAuth.instance.currentUser!.displayName!),
 
 
                 ],

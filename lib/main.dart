@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:outdoor_admin/page/Stays/StayManager.dart';
-import 'package:outdoor_admin/page/phone.dart';
+import 'package:outdoor_admin/phone.dart';
 import 'package:outdoor_admin/services/adminlogin.dart';
 import 'package:outdoor_admin/page/Home/choose.dart';
 import 'package:outdoor_admin/page/Iteanary/previousitenary.dart';
@@ -16,9 +17,12 @@ import 'package:outdoor_admin/page/wrapper.dart';
 import 'package:outdoor_admin/routes.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'SplashScreen.dart';
+
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
   runApp(const MyApp());
 }
 
@@ -31,11 +35,11 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       color: Colors.white,
-        theme: ThemeData(primarySwatch: Colors.amber
-        )
-            .copyWith(textTheme: GoogleFonts.loraTextTheme())
-        ,
-        home: Wrapper(),
+        theme: ThemeData(
+          primaryColor: Colors.indigoAccent,
+          fontFamily: 'Roboto',
+        ),
+        home: SplashScreen(),
        // initialRoute: "/wrapper",
         routes: {
           MyRoutes.loginroute: (context) => Login(),

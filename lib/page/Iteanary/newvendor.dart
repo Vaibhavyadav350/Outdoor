@@ -34,8 +34,17 @@ class _NewVendorsState extends State<NewVendors> {
           .collection('Spiti').doc('Vendors')
           .collection('vendors').doc(optionValue)
           .set({'optionValue':optionValue});
-      FirebaseFirestore.instance.collection('SpitiDriver').doc(drivername).set(
+      FirebaseFirestore.instance
+          .collection('Spiti')
+          .doc('DriverInfo')
+          .collection('DriverInfo').doc(drivername).set(
           {'phone': driverphonenumber});
+      FirebaseFirestore.instance
+          .collection('number')
+          .doc('DriverInfo')
+          .update({
+        'phone': FieldValue.arrayUnion([driverphonenumber])
+      });
       _optionController.clear();
       _drivername.clear();
       _driverdrivingLicense.clear();
