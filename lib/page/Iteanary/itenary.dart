@@ -409,12 +409,24 @@ class _ItenaryState extends State<Itenary> {
                             child: Text(document.get('name')),
                           );
                         }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            dropdownValues[index]['dropdownValue'] = value;
-                            dropdownValues[index]['selectedDate'] = dropdownDates[index];
-                          });
-                        },
+                          onChanged: (value) async {
+                            setState(() {
+                              dropdownValues[index]['dropdownValue'] = value;
+                              dropdownValues[index]['selectedDate'] = dropdownDates[index];
+                            });
+
+                            QuerySnapshot querySnapshot = await dropdownsCollection
+                                .where('name', isEqualTo: value)
+                                .get();
+
+                            if (querySnapshot.docs.isNotEmpty) {
+                              setState(() {
+                                dropdownValues[index]['Location'] = querySnapshot.docs[0]['location'];
+                                dropdownValues[index]['pluscode'] = querySnapshot.docs[0]['pluscode'];
+                              });
+                            }
+                          },
+
                       ),
 
 

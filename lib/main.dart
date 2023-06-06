@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
           fontFamily: 'Roboto',
         ),
         home: SplashScreen(),
-       // initialRoute: "/wrapper",
+      //  initialRoute: "/wrapper",
         routes: {
           MyRoutes.loginroute: (context) => Login(),
           MyRoutes.vendors: (context) => NewVendors(),

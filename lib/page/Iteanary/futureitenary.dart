@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lottie/lottie.dart';
 
 import '../Traveller/travellerscreen.dart';
 
@@ -39,7 +40,7 @@ class _FutureItenaryState extends State<FutureItenary> {
     return Material(
       child: _collections.isEmpty
           ? Center(
-        child: CircularProgressIndicator(),
+        child: Lottie.asset('assets/progress.json'),
       )
           : ListView.builder(
         itemCount: _collections.length,

@@ -10,11 +10,16 @@ class _AddStaysState extends State<AddStays> {
   final TextEditingController _optionController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _pluscode = TextEditingController();
+
+
 
   void _saveOption() {
     String optionValue = _optionController.text.trim();
     String phoneValue = _phoneController.text.trim();
     String locationValue = _locationController.text.trim();
+    String pluscode = _pluscode.text.trim();
+
     if (optionValue.isNotEmpty && phoneValue.isNotEmpty && locationValue.isNotEmpty) {
       FirebaseFirestore.instance.collection('Spiti').doc('Stays')
           .collection('Stays')
@@ -22,7 +27,9 @@ class _AddStaysState extends State<AddStays> {
           .set({
         'name': optionValue,
         'phone': phoneValue,
-        'location': locationValue})
+        'location': locationValue,
+          'pluscode':pluscode
+          })
           .then((value) => print('Option added'))
           .catchError((error) => print('Failed to add option: $error'));
       FirebaseFirestore.instance
@@ -76,6 +83,13 @@ class _AddStaysState extends State<AddStays> {
                 controller: _locationController,
                 decoration: InputDecoration(
                   labelText: 'Enter Location',
+                ),
+              ),
+              SizedBox(height: 16.0),
+              TextField(
+                controller: _pluscode,
+                decoration: InputDecoration(
+                  labelText: 'Enter Google PlusCode',
                 ),
               ),
               SizedBox(height: 16.0),
