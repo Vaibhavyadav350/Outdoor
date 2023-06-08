@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:outdoor_admin/noe_box.dart';
+import 'package:outdoor_admin/page/Iteanary/collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
+import '../../theme/noe_box1.dart';
 import 'trid.dart';
 
 import '../../theme/colors.dart';
@@ -79,18 +82,50 @@ class _TravellerScreenState extends State<TravellerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
-      appBar: AppBar(
-        title: Text("Your Trips"),
-        centerTitle: true,
-      ),
+
       body: Container(
         child: ListView(
           children: [
-            Image.asset(
-              "assets/images/journey.jpg",
-              fit: BoxFit.cover,
-              height: 200,
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    height: 60,
+                    width: 60,
+                    child: NeoBox(
+                      value: IconButton(
+                        icon: Icon(Icons.arrow_back_ios_new),
+                        onPressed: () {
+                          // Handle back button pressed
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (context) => Collections()),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  Text(
+                    "U S E R    T R I P S",
+                  ),
+                  SizedBox(
+                    height: 60,
+                    width: 60,
+                    child: NeoBox(
+                      value: IconButton(
+                        icon: Icon(Icons.menu), onPressed: () {  },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+            SizedBox(
+                height: 200,
+                child: Lottie.asset('assets/trvls.json')),
+
             SizedBox(height: 16.0),
             // ElevatedButton(
             //   onPressed: _fetchData,
@@ -160,8 +195,10 @@ class _TravellerScreenState extends State<TravellerScreen> {
                                       );
                                     }
                                   },
-                                  child: Icon(Icons.location_on,
-                                      color: Colors.redAccent),
+                                  child: NeuBox(
+                                    value: Icon(Icons.location_on,
+                                        color: Colors.redAccent),
+                                  ),
                                 ),
                                 SizedBox(
                                   width: 50,
@@ -198,8 +235,10 @@ class _TravellerScreenState extends State<TravellerScreen> {
                                   children: [
                                     Container(
                                       child: isFutureDate
-                                          ? Icon(Icons.check,
-                                              color: Colors.green)
+                                          ? NeuBox(
+                                            value: Icon(Icons.check,
+                                                color: Colors.green),
+                                          )
                                           : null,
                                     )
                                   ],
@@ -238,7 +277,7 @@ class _TravellerScreenState extends State<TravellerScreen> {
                     return  Container(
                       margin: EdgeInsets.only(bottom: 16.0),
                       child: SizedBox(
-                        height: 80,
+                        height: 60,
 
                         width: 350,
                         child: NeoBox(
@@ -246,58 +285,121 @@ class _TravellerScreenState extends State<TravellerScreen> {
                             value: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                Icon(
-                                  Icons.person,
-                                  color: Colors.deepPurple,
-                                ),
-                                Row(
-                                  children: [
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Driver: $driver",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20
-                                          ),
-                                        ),
-                                        Text(
-                                          "License: $drivingLicense",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey[700]
-                                          ),
-                                        ),
-                                        Text(
-                                          "Number: $driverphone",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                              color: Colors.grey[700]
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                        onTap: () {
-                                          String phoneNumber = driverphone.replaceAll(
-                                              RegExp(r'[^0-9]'),
-                                              ''); // Remove non-numeric characters from the phone number
-                                          String telUrl =
-                                              'tel:$phoneNumber'; // Construct the tel URL
-                                          launch(telUrl); // Launch the phone call
-                                        },
-                                        child: Icon(
-                                          Icons.phone,
-                                          color: Colors.blue,
-                                        ),
+                                NeuBox(
+                                  value: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.person,
+                                        color: Colors.deepPurple,
                                       ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+
+
+                                        GestureDetector(
+                                          onTap:(){
+                                            showModalBottomSheet(context: context,
+                                                backgroundColor: Colors.grey[300],
+                                                barrierColor: Colors.black87.withOpacity(0.5),
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top:Radius.circular(30))),
+                                              builder: (context) => Container(
+                                                height: 300,
+                                                child: Center(
+                                                  child: Column(
+                                                     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                    children: [
+                                                      SizedBox(
+                                                        height: 100,
+                                                        width: 100,
+                                                        child:
+                                                        Column(
+                                                          children: [
+                                                            ClipRRect(
+                                                              borderRadius: BorderRadius.circular(100),
+                                                              child: Image.asset("assets/images/ad.jpg"),
+                                                            ),
+
+                                                          ],
+                                                        )
+                                                      ),
+                                                      SizedBox(
+                                                        height: 60,
+                                                        width: 300,
+                                                        child: NeoBox(
+                                                          value:Column(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                          children: [
+                                                            Text(
+                                                              "License: $drivingLicense",
+                                                              style: TextStyle(
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: Colors.grey[700]
+                                                              ),
+                                                            ),
+
+                                                          ],
+                                                        ) ,),
+                                                      ),
+                                                      SizedBox(
+                                                        height: 60,
+                                                        width: 300,
+                                                        child: NeoBox(
+                                                          value:Column(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              Text(
+                                                                "Number: $driverphone",
+                                                                style: TextStyle(
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: Colors.grey[700]
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          )
+                                                          ,),
+                                                      ),
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
+                                            );
+                                          },
+                                          child: Text(
+                                            "Driver: $driver",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20
+                                            ),
+                                          ),
+                                        ),
+
+
+
                                   ],
+                                ),
+                                NeuBox(
+                                  value: Row(
+                                    children: [
+                                      GestureDetector(
+                                          onTap: () {
+                                            String phoneNumber = driverphone.replaceAll(
+                                                RegExp(r'[^0-9]'),
+                                                ''); // Remove non-numeric characters from the phone number
+                                            String telUrl =
+                                                'tel:$phoneNumber'; // Construct the tel URL
+                                            launch(telUrl); // Launch the phone call
+                                          },
+                                          child: Icon(
+                                            Icons.phone,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 )
                               ],
                             ),
@@ -330,64 +432,66 @@ class _TravellerScreenState extends State<TravellerScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               Row(
-
                                 children: [
-                                  Icon(
-                                    Icons.directions_car_filled_sharp,
-                                    color: Colors.deepPurple,
+                                  NeuBox(
+                                    value: Icon(
+                                      Icons.directions_car_filled_sharp,
+                                      color: Colors.deepPurple,
+                                    ),
                                   ),
                                   SizedBox(
                                     width: 20,
                                   )
                                 ],
                               ),
-                              Row(
-                                children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            "Car: ",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.grey[700],
-                                                fontSize: 20),
-                                          ),
-                                          Text(
-                                            "$car",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            "Car Number: ",
-                                            style: TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.grey[700],
-                                                fontWeight: FontWeight.w500
-                                                // color: Colors.grey.shade700,
-                                                ),
-                                          ),
-                                          Text(
-                                            "$carNumber",
-                                            style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                               Row(
+                                  children: [
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Car: ",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey[700],
+                                                  fontSize: 20),
+                                            ),
+                                            Text(
+                                              "$car",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Car Number: ",
+                                              style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.grey[700],
+                                                  fontWeight: FontWeight.w500
+                                                  // color: Colors.grey.shade700,
+                                                  ),
+                                            ),
+                                            Text(
+                                              "$carNumber",
+                                              style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+
                             ],
                           ),
                           // subtitle:
