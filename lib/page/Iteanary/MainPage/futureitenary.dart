@@ -1,8 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lottie/lottie.dart';
 
-import '../Traveller/travellerscreen.dart';
+import '../../Traveller/travellerscreen.dart';
 
 class FutureItenary extends StatefulWidget {
   @override
@@ -11,29 +12,72 @@ class FutureItenary extends StatefulWidget {
 
 class _FutureItenaryState extends State<FutureItenary> {
   List<String> _collections = [];
+  String fieldName = '';
+  String documentId = '';
 
   @override
   void initState() {
     super.initState();
-    getCollections().then((collections) {
-      setState(() {
-        _collections = collections ?? [];
-      });
+    fetchComapnyname();
+  }
+  Future<void> fetchComapnyname() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+      DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+      if (snapshot.exists) {
+        String? phone = snapshot.data()?['phone'] as String?;
+        if (phone != null) {
+          QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance.collection('number').get();
+
+          if (querySnapshot.docs.isNotEmpty) {
+            for (QueryDocumentSnapshot<Map<String, dynamic>> document
+            in querySnapshot.docs) {
+              List<dynamic> phoneArray = document.data()['phone'];
+              for (int i = 0; i < phoneArray.length; i++) {
+                if (phoneArray[i] is Map<String, dynamic>) {
+                  Map<String, dynamic> map =
+                  Map<String, dynamic>.from(phoneArray[i]);
+                  if (map.containsValue(phone)) {
+                    documentId = document.id;
+                    fieldName = map.keys.first;
+                    break;
+                  }
+                } else if (phoneArray[i] == phone) {
+                  documentId = document.id;
+                  fieldName = 'phone';
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    List<String> collections = await getCollections(fieldName);
+    setState(() {
+      _collections = collections;
     });
   }
 
-  Future<List<String>?> getCollections() async {
+  Future<List<String>> getCollections(String fieldName) async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-    .collection('Spiti').doc('Users')
+        .collection(fieldName)
+        .doc('Users')
         .collection('Users')
         .where('timestamp', isGreaterThan: DateTime.now())
         .get();
+
     List<String> collections = [];
     for (var collection in querySnapshot.docs) {
       collections.add(collection.id);
     }
     return collections;
   }
+
 
   @override
   Widget build(BuildContext context) {

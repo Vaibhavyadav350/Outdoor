@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flutter_sms/flutter_sms.dart';
-import 'package:outdoor_admin/page/Iteanary/collection.dart';
+import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
 import 'package:outdoor_admin/page/Iteanary/pax.dart';
 import 'package:outdoor_admin/page/Iteanary/selectcar.dart';
 import 'package:url_launcher/url_launcher.dart';

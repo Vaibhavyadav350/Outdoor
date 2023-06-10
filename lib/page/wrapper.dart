@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart';
 
 import '../phone.dart';
 import 'Driver/DriverManager.dart';
-import 'Iteanary/collection.dart';
+import 'Iteanary/MainPage/collection.dart';
 import 'Stays/StayManager.dart';
 
 class Wrapper extends StatefulWidget {

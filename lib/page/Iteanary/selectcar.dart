@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:outdoor_admin/page/Iteanary/collection.dart';
+import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
 
 class SelectCar extends StatefulWidget {
   final String travellerid;

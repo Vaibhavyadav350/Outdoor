@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:outdoor_admin/page/Iteanary/futureitenary.dart';
+import 'package:outdoor_admin/page/Iteanary/MainPage/futureitenary.dart';
 import 'package:outdoor_admin/page/Iteanary/pax.dart';
-import 'package:outdoor_admin/page/Iteanary/previousitenary.dart';
-import '../../routes.dart';
-import 'newcar.dart';
+import 'package:outdoor_admin/page/Iteanary/MainPage/previousitenary.dart';
+import '../../../routes.dart';
+import '../newcar.dart';
 import 'ongoingItenary.dart';
 
 class Collections extends StatefulWidget {

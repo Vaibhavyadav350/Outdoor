@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:outdoor_admin/routes.dart';
 
-import '../page/Iteanary/collection.dart';
+import '../page/Iteanary/MainPage/collection.dart';
 import '../page/Iteanary/pax.dart';
-import '../page/Iteanary/previousitenary.dart';
+import '../page/Iteanary/MainPage/previousitenary.dart';
 
 class AdminLogin extends StatefulWidget {
   const AdminLogin({Key? key}) : super(key: key);

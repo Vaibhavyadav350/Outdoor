@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:outdoor_admin/noe_box.dart';
-import 'package:outdoor_admin/page/Iteanary/collection.dart';
+import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
 import '../../theme/noe_box1.dart';

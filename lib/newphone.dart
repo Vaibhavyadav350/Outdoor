@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -7,7 +8,6 @@ class FirestoreQueryExample extends StatefulWidget {
 }
 
 class _FirestoreQueryExampleState extends State<FirestoreQueryExample> {
-  final String targetValue = '4534346'; // The value to search for
   String documentId = '';
   String fieldName = '';
 
@@ -18,30 +18,42 @@ class _FirestoreQueryExampleState extends State<FirestoreQueryExample> {
   }
 
   Future<void> fetchData() async {
-    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
-        .collection('number')
-        .get();
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+      DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
 
-    if (snapshot.docs.isNotEmpty) {
-      for (QueryDocumentSnapshot<Map<String, dynamic>> document in snapshot.docs) {
-        List<dynamic> phoneArray = document.data()['phone'];
-        for (int i = 0; i < phoneArray.length; i++) {
-          if (phoneArray[i] is Map<String, dynamic>) {
-            Map<String, dynamic> map = Map<String, dynamic>.from(phoneArray[i]);
-            if (map.containsValue(targetValue)) {
-              documentId = document.id;
-              fieldName = map.keys.first;
-              break;
+      if (snapshot.exists) {
+        String? phone = snapshot.data()?['phone'] as String?;
+        if (phone != null) {
+          QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance.collection('number').get();
+
+          if (querySnapshot.docs.isNotEmpty) {
+            for (QueryDocumentSnapshot<Map<String, dynamic>> document
+            in querySnapshot.docs) {
+              List<dynamic> phoneArray = document.data()['phone'];
+              for (int i = 0; i < phoneArray.length; i++) {
+                if (phoneArray[i] is Map<String, dynamic>) {
+                  Map<String, dynamic> map =
+                  Map<String, dynamic>.from(phoneArray[i]);
+                  if (map.containsValue(phone)) {
+                    documentId = document.id;
+                    fieldName = map.keys.first;
+                    break;
+                  }
+                } else if (phoneArray[i] == phone) {
+                  documentId = document.id;
+                  fieldName = 'phone';
+                  break;
+                }
+              }
             }
-          } else if (phoneArray[i] == targetValue) {
-            documentId = document.id;
-            fieldName = 'phone';
-            break;
           }
         }
       }
     }
-
     setState(() {}); // Update the UI with the retrieved data
   }
 
