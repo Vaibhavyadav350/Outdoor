@@ -95,9 +95,43 @@ class _WrapperState extends State<Wrapper> {
           }
         }
 
-        print('Phone number not found');
-        return Scaffold(
-          body: Center(child: Text('Phone number not found')),
+        // If the phone number is not found in 'phone', search in 'num'
+        return FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('number')
+              .where('num', arrayContains: phoneNumber)
+              .get(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Scaffold(
+                body: Center(child: Lottie.asset('assets/progress.json')),
+              );
+            }
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
+            if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+              String documentId = snapshot.data!.docs.first.id;
+              print('Document ID: $documentId');
+
+              if (documentId == 'StaysInfo') {
+                print('Navigating to StayManager');
+                return StayManager();
+              } else if (documentId == 'DriverInfo') {
+                print('Navigating to DriverManager');
+                return DriverManage();
+              } else if (documentId == 'Admin') {
+                print('Navigating to Collections');
+                return Collections();
+              }
+            }
+
+            print('Phone number not found');
+            return Scaffold(
+              body: Center(child: Text('Phone number not found')),
+            );
+          },
         );
       },
     );

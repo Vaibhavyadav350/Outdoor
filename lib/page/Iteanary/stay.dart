@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -11,7 +12,52 @@ class _AddStaysState extends State<AddStays> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _pluscode = TextEditingController();
+  String? fetchedFieldName;
 
+  @override
+  void initState() {
+    super.initState();
+    fetchComapnyname(); // Fetch the field name when the widget is initialized
+  }
+
+
+  // Fetch the field name from Firebase
+  Future<void> fetchComapnyname() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+      DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+      if (snapshot.exists) {
+        String? phone = snapshot.data()?['phone'] as String?;
+        if (phone != null) {
+          QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance.collection('number').get();
+
+          if (querySnapshot.docs.isNotEmpty) {
+            for (QueryDocumentSnapshot<Map<String, dynamic>> document
+            in querySnapshot.docs) {
+              List<dynamic> phoneArray = document.data()['phone'];
+              for (int i = 0; i < phoneArray.length; i++) {
+                if (phoneArray[i] is Map<String, dynamic>) {
+                  Map<String, dynamic> map =
+                  Map<String, dynamic>.from(phoneArray[i]);
+                  if (map.containsValue(phone)) {
+                    fetchedFieldName = map.keys.first;
+                    break;
+                  }
+                } else if (phoneArray[i] == phone) {
+                  fetchedFieldName = 'phone';
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
 
   void _saveOption() {
@@ -21,7 +67,7 @@ class _AddStaysState extends State<AddStays> {
     String pluscode = _pluscode.text.trim();
 
     if (optionValue.isNotEmpty && phoneValue.isNotEmpty && locationValue.isNotEmpty) {
-      FirebaseFirestore.instance.collection('Spiti').doc('Stays')
+      FirebaseFirestore.instance.collection(fetchedFieldName!).doc('Stays')
           .collection('Stays')
           .doc(locationValue)
           .set({
@@ -33,19 +79,52 @@ class _AddStaysState extends State<AddStays> {
           .then((value) => print('Option added'))
           .catchError((error) => print('Failed to add option: $error'));
       FirebaseFirestore.instance
-          .collection('Spiti')
+          .collection(fetchedFieldName!)
           .doc('StaysInfo')
           .collection('StaysInfo').doc(optionValue).set(
           {'phone': phoneValue});
+
+
+      FirebaseFirestore.instance
+          .collection('Stays')
+          .doc(locationValue)
+          .set({
+        'name': optionValue,
+        'phone': phoneValue,
+        'location': locationValue,
+        'pluscode':pluscode
+      })
+
+
+
+          .then((value) => print('Option added'))
+          .catchError((error) => print('Failed to add option: $error'));
+
+      FirebaseFirestore.instance
+          .collection('StaysInfo')
+          .doc('StaysInfo')
+          .collection('StaysInfo').doc(optionValue).set(
+          {'phone': phoneValue});
+
+
       FirebaseFirestore.instance
           .collection('number')
           .doc('StaysInfo')
           .update({
-        'phone': FieldValue.arrayUnion([phoneValue])
+        'phone': FieldValue.arrayUnion([
+          {'$fetchedFieldName':phoneValue}
+        ])
+      });
+      FirebaseFirestore.instance
+          .collection('number')
+          .doc('StaysInfo')
+          .update({
+        'num': FieldValue.arrayUnion([phoneValue])
       });
       _optionController.clear();
       _phoneController.clear();
       _locationController.clear();
+      _pluscode.clear();
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -31,11 +32,16 @@ class _TravellerScreenState extends State<TravellerScreen> {
 
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _documents = [];
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _vendordocuments = [];
+  String? fetchedFieldName='';
 
   @override
   void initState() {
     super.initState();
-    _fetchData(); // Call fetchData function when the screen is initialized
+    fetchComapnyname().then((_) {
+      _fetchData();
+    });
+     // Call fetchData function when the screen is initialized
+
   }
 
   @override
@@ -43,13 +49,58 @@ class _TravellerScreenState extends State<TravellerScreen> {
     _collectionNameController.dispose();
     super.dispose();
   }
+  Future<void> fetchComapnyname() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+      DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+      if (snapshot.exists) {
+        String? phone = snapshot.data()?['phone'] as String?;
+        if (phone != null) {
+          QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance.collection('number').get();
+
+          if (querySnapshot.docs.isNotEmpty) {
+            for (QueryDocumentSnapshot<Map<String, dynamic>> document
+            in querySnapshot.docs) {
+              List<dynamic> phoneArray = document.data()['phone'];
+              for (int i = 0; i < phoneArray.length; i++) {
+                if (phoneArray[i] is Map<String, dynamic>) {
+                  Map<String, dynamic> map =
+                  Map<String, dynamic>.from(phoneArray[i]);
+                  if (map.containsValue(phone)) {
+                    fetchedFieldName = map.keys.first;
+                    break;
+                  }
+                } else if (phoneArray[i] == phone) {
+                  fetchedFieldName = 'phone';
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    else {
+      fetchedFieldName = null;
+      return;
+    }
+  }
 
   Future<void> _fetchData() async {
+    print("name :: $fetchedFieldName");
+    // Fetch data from Firestore
+    if (fetchedFieldName == null || fetchedFieldName!.isEmpty) {
+      return;
+    }
     // Fetch data from Firestore
     _collectionNameController.text = value;
     QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
         .instance
-        .collection('Spiti')
+        .collection(fetchedFieldName!)
         .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
@@ -67,7 +118,7 @@ class _TravellerScreenState extends State<TravellerScreen> {
 
     QuerySnapshot<Map<String, dynamic>> snapshots = await FirebaseFirestore
         .instance
-        .collection('Spiti')
+        .collection(fetchedFieldName!)
         .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
@@ -196,8 +247,11 @@ class _TravellerScreenState extends State<TravellerScreen> {
                                     }
                                   },
                                   child: NeuBox(
-                                    value: Icon(Icons.location_on,
-                                        color: Colors.redAccent),
+                                    value:  Image.asset(
+                                      "assets/images/location.png",
+                                      width: 24, // Set the desired width of the image
+                                      height: 24,
+                                    ),
                                   ),
                                 ),
                                 SizedBox(
@@ -288,10 +342,9 @@ class _TravellerScreenState extends State<TravellerScreen> {
                                 NeuBox(
                                   value: Row(
                                     children: [
-                                      Icon(
-                                        Icons.person,
-                                        color: Colors.deepPurple,
-                                      ),
+                                      Image.asset("assets/images/drivr.png",
+                                      height:24,width: 24,
+                                      )
                                     ],
                                   ),
                                 ),
@@ -429,19 +482,17 @@ class _TravellerScreenState extends State<TravellerScreen> {
                         width: 350,
                         child: NeoBox(
                           value: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
+                                  SizedBox(width: 30,),
                                   NeuBox(
-                                    value: Icon(
-                                      Icons.directions_car_filled_sharp,
-                                      color: Colors.deepPurple,
-                                    ),
+                                    value: Image.asset("assets/images/car.png",
+                                      height:24,width: 24,
+                                    )
                                   ),
-                                  SizedBox(
-                                    width: 20,
-                                  )
+                                  SizedBox(width: 30,)
                                 ],
                               ),
                                Row(
@@ -451,42 +502,93 @@ class _TravellerScreenState extends State<TravellerScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "Car: ",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.grey[700],
-                                                  fontSize: 20),
-                                            ),
-                                            Text(
-                                              "$car",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "Car Number: ",
-                                              style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: Colors.grey[700],
-                                                  fontWeight: FontWeight.w500
-                                                  // color: Colors.grey.shade700,
+                                        GestureDetector(
+                                          onTap:(){
+                                            showModalBottomSheet(context: context,
+                                                backgroundColor: Colors.grey[300],
+                                                barrierColor: Colors.black87.withOpacity(0.5),
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top:Radius.circular(30))),
+                                                builder: (context) => Container(
+                                                  height: 300,
+                                                  child: Center(
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                      children: [
+                                                        SizedBox(
+                                                            height: 100,
+                                                            width: 100,
+                                                            child:
+                                                            Column(
+                                                              children: [
+                                                                ClipRRect(
+                                                                  borderRadius: BorderRadius.circular(100),
+                                                                  child: Image.asset("assets/images/driver.jpg"),
+                                                                ),
+
+                                                              ],
+                                                            )
+                                                        ),
+                                                        SizedBox(
+                                                          height: 60,
+                                                          width: 300,
+                                                          child: NeoBox(
+                                                            value:Column(
+                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                              children: [
+                                                                Text(
+                                                                  "Car Number: $carNumber",
+                                                                  style: TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      color: Colors.grey[700]
+                                                                  ),
+                                                                ),
+
+                                                              ],
+                                                            ) ,),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
-                                            ),
-                                            Text(
-                                              "$carNumber",
-                                              style: TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                          ],
+                                                )
+                                            );
+                                          },
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                "Car: ",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey[700],
+                                                    fontSize: 20),
+                                              ),
+                                              Text(
+                                                "$car",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20),
+                                              ),
+                                            ],
+                                          ),
                                         ),
+                                        // Row(
+                                        //   children: [
+                                        //     Text(
+                                        //       "Car Number: ",
+                                        //       style: TextStyle(
+                                        //           fontSize: 15,
+                                        //           color: Colors.grey[700],
+                                        //           fontWeight: FontWeight.w500
+                                        //           // color: Colors.grey.shade700,
+                                        //           ),
+                                        //     ),
+                                        //     Text(
+                                        //       "$carNumber",
+                                        //       style: TextStyle(
+                                        //           fontSize: 15,
+                                        //           fontWeight: FontWeight.w500),
+                                        //     ),
+                                        //   ],
+                                        // ),
                                       ],
                                     ),
                                   ],

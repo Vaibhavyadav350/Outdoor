@@ -1,0 +1,330 @@
+Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text('Create Itinery'),
+      ),
+
+      drawer: Drawer(
+
+        child: ListView(
+
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.amberAccent,
+              ),
+              child: Column(
+                children: [
+                  // Image.network(FirebaseAuth.instance.currentUser!.photoURL!,height: 100,width: 1000,),
+                  // SizedBox(height: 15,),
+                  // Text(FirebaseAuth.instance.currentUser!.displayName!),
+
+
+                ],
+              ),
+            ),
+
+            ListTile(
+              leading: Icon(Icons.home,color: Colors.redAccent,),
+              title: const Text('Add Stays'),
+              onTap: () {
+                // Update the state of the app.
+                // ...
+                Navigator.pushNamed(context,MyRoutes.addStays);
+
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.drive_eta_rounded,color: Colors.redAccent,),
+              title: const Text('Add Vendors'),
+              onTap: () {
+                // Update the state of the app.
+                // ...
+                Navigator.pushNamed(context,MyRoutes.vendors);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.people,color: Colors.redAccent,),
+              title: const Text('Travellers'),
+              onTap: () {
+                // Update the state of the app.
+                // ...
+                Navigator.pushNamed(context,MyRoutes.travellers);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.done_all,color: Colors.redAccent,),
+              title: const Text('All Itenary'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) => Collections()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: Column(
+                children: [
+                  SizedBox(height: 10),
+
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      numDropdowns = int.parse(value);
+                      _generateDropdowns();
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Enter number of Days',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      numDropdownsvendor = int.parse(value);
+                      _generateDropdownsforvendor();
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Enter number of Drivers',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          SizedBox(height: 10),
+          SizedBox(height: 10),
+          Row(
+            children: [
+              SizedBox(width: 10),
+              Text('Initial Date: '),
+              SizedBox(width: 10),
+              GestureDetector(
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: initialDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      initialDate = pickedDate;
+                      _generateDropdowns();
+                    });
+                  }
+                },
+                child: Text(
+                  '${initialDate.toLocal().toString().split(' ')[0]}',
+                  style: TextStyle(fontSize: 16,color: Colors.green),
+                ),
+              ),
+              SizedBox(width: 10),
+              Text('Final Date: '),
+
+              GestureDetector(
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: finaldate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      finaldate = pickedDate;
+                      _generateDropdowns();
+                    });
+                  }
+                },
+                child: Text(
+                  '${finaldate.toLocal().toString().split(' ')[0]}',
+                  style: TextStyle(fontSize: 16,color: Colors.green),
+                ),
+              ),
+            ],
+          ),
+
+
+
+
+          StreamBuilder<QuerySnapshot>(
+            stream: vendorDropdownCollection.snapshots(),
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Text('Loading...');
+              }
+              return DropdownButton<String>(
+
+                //  String vendordropdownValue = selectedVendorValue[document.id] ?? '';
+                value: selectedVendorValue,
+                items: snapshot.data!.docs.map((DocumentSnapshot document) {
+                  return DropdownMenuItem<String>(
+                    value: document.id,
+                    child: Text(document.id),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedVendorValue= newValue!;
+                  });
+                },
+              );
+            },
+          ),
+
+
+
+
+          Expanded(
+            child: FutureBuilder<QuerySnapshot>(
+              future: dropdownsCollection.get(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                }
+
+                return ListView.builder(
+                  itemCount: numDropdowns,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      leading: Text('Day ${index + 1} '),
+                      trailing:
+                      DropdownButton(
+                        value: dropdownValues[index]['dropdownValue'],
+                        items: snapshot.data!.docs.map((
+                            DocumentSnapshot document) {
+                          return DropdownMenuItem(
+                            value: document.get('name'),
+                            child: Text(document.get('name')),
+                          );
+                        }).toList(),
+                          onChanged: (value) async {
+                            setState(() {
+                              dropdownValues[index]['dropdownValue'] = value;
+                              dropdownValues[index]['selectedDate'] = dropdownDates[index];
+                            });
+
+                            QuerySnapshot querySnapshot = await dropdownsCollection
+                                .where('name', isEqualTo: value)
+                                .get();
+
+                            if (querySnapshot.docs.isNotEmpty) {
+                              setState(() {
+                                dropdownValues[index]['Location'] = querySnapshot.docs[0]['location'];
+                                dropdownValues[index]['pluscode'] = querySnapshot.docs[0]['pluscode'];
+                              });
+                            }
+                          },
+
+                      ),
+
+
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+
+
+          Expanded(
+            child: FutureBuilder<QuerySnapshot>(
+              future: vendorDropdownCollection.doc(selectedVendorValue).collection(selectedVendorValue).get(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                }
+
+                return ListView.builder(
+                  itemCount: numDropdownsvendor,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      title: Text('Driver ${index + 1}'),
+                      trailing:
+                      DropdownButton(
+                        value: selectedDriverValue[index]['Driver'],
+                        items: snapshot.data!.docs.map((
+                            DocumentSnapshot document) {
+                          return DropdownMenuItem(
+                            value: document.get('drivername'),
+                            child: Text(document.get('drivername')),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() async {
+                            selectedDriverValue[index]['Driver'] = value;
+                            QuerySnapshot querySnapshot = await vendorDropdownCollection
+                                .doc(selectedVendorValue)
+                                .collection(selectedVendorValue)
+                                .where('drivername', isEqualTo: value)
+                                .get();
+                            if (querySnapshot.docs.isNotEmpty) {
+                              setState(() {
+                                selectedDriverValue[index]['DriverLicense']
+                                = querySnapshot.docs[0]['driverLicense'];
+                                selectedDriverValue[index]['DriverPhone']
+                                = querySnapshot.docs[0]['driverphone'];
+                              });
+                            }
+
+                            //   dropdownValues[index]['selectedDate'] = dropdownDates[index];
+                          });
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+
+
+
+
+          Container(
+
+            width: 130,
+            child: ElevatedButton(
+              onPressed: () {
+                _saveToFirestore();
+                //  Navigator.pushNamed(context, routeName)
+              },
+              child: Row(
+
+                children: [
+                  Text('Proceed'),
+                  Icon(Icons.arrow_forward_ios,color: Colors.grey,)
+                ],),
+            ),
+          ),
+        ],
+      ),
+    );

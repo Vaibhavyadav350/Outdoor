@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_sms/flutter_sms.dart';
@@ -19,6 +20,7 @@ class _PaxState extends State<Pax> {
   late TextEditingController _pax;
   late TextEditingController _travellerid;
   late TextEditingController _groupLeadContact;
+  String? fetchedFieldName;
   // //late TwilioFlutter twilioFlutter;
   // TwilioFlutter twilioFlutter = TwilioFlutter(
   // accountSid : 'AC475ab9b4d2f308d0fce82dc172cd2e98', // replace *** with Account SID
@@ -30,16 +32,57 @@ class _PaxState extends State<Pax> {
   @override
   void initState() {
     super.initState();
+
     _pax = TextEditingController();
     _travellerid = TextEditingController();
     _groupLeadContact = TextEditingController();
 
     // Generate and set the initial value of traveler ID
-    generateTravelerId().then((generatedId) {
-      setState(() {
-        _travellerid.text = generatedId;
+    fetchComapnyname().then((_) {
+      generateTravelerId().then((generatedId) {
+        setState(() {
+          _travellerid.text = generatedId;
+        });
       });
     });
+
+  }
+
+  Future<void> fetchComapnyname() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+      DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+      if (snapshot.exists) {
+        String? phone = snapshot.data()?['phone'] as String?;
+        if (phone != null) {
+          QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance.collection('number').get();
+
+          if (querySnapshot.docs.isNotEmpty) {
+            for (QueryDocumentSnapshot<Map<String, dynamic>> document
+            in querySnapshot.docs) {
+              List<dynamic> phoneArray = document.data()['phone'];
+              for (int i = 0; i < phoneArray.length; i++) {
+                if (phoneArray[i] is Map<String, dynamic>) {
+                  Map<String, dynamic> map =
+                  Map<String, dynamic>.from(phoneArray[i]);
+                  if (map.containsValue(phone)) {
+                    fetchedFieldName = map.keys.first;
+                    break;
+                  }
+                } else if (phoneArray[i] == phone) {
+                  fetchedFieldName = 'phone';
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   Future<String> generateTravelerId() async {
@@ -63,7 +106,7 @@ class _PaxState extends State<Pax> {
     // Increment the latest numeric ID by 1 to generate a new traveler ID
     int newNumericId = latestNumericId + 1;
 
-    return 'SPITI2023$newNumericId'; // Return the generated traveler ID
+    return '$fetchedFieldName'+ '2023$newNumericId'; // Return the generated traveler ID
   }
   Future<void> saveTravelerIdToFirestore(String travelerId) async {
     CollectionReference travelersCollection =
@@ -140,6 +183,7 @@ class _PaxState extends State<Pax> {
                       leading: Icon(Icons.numbers, color: Colors.red),
                       title: TextField(
                         controller: _travellerid,
+                        enabled: false,
                         decoration: InputDecoration(
                           hintText: 'Traveller ID',
                           border: OutlineInputBorder(

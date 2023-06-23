@@ -9,12 +9,53 @@ class DriverManage extends StatefulWidget {
   @override
   _DriverManageState createState() => _DriverManageState();
 }
+
+
 class _DriverManageState extends State<DriverManage> {
   List<Map<String, dynamic>> dropdownValueArray = [];
+  late String fetchedFieldName;
+
+  Future<String?> fetchComapnyname() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+      DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+      if (snapshot.exists) {
+        String? phone = snapshot.data()?['phone'] as String?;
+        if (phone != null) {
+          QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance.collection('number').get();
+
+          if (querySnapshot.docs.isNotEmpty) {
+            for (QueryDocumentSnapshot<Map<String, dynamic>> document
+            in querySnapshot.docs) {
+              List<dynamic> phoneArray = document.data()['phone'];
+              for (int i = 0; i < phoneArray.length; i++) {
+                if (phoneArray[i] is Map<String, dynamic>) {
+                  Map<String, dynamic> map =
+                  Map<String, dynamic>.from(phoneArray[i]);
+                  if (map.containsValue(phone)) {
+                    return map.keys.first;
+                  }
+                } else if (phoneArray[i] == phone) {
+                  return 'phone';
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 
   Future<void> _retrieveData(String phone) async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Spiti')
+    print("fieldname :: $fetchedFieldName");
+    QuerySnapshot<Map<String, dynamic>> querySnapshot =
+    await FirebaseFirestore.instance
+        .collection(fetchedFieldName)
         .doc('DriverInfo')
         .collection('DriverInfo')
         .where('phone', isEqualTo: phone)
@@ -29,24 +70,34 @@ class _DriverManageState extends State<DriverManage> {
   @override
   void initState() {
     super.initState();
-    // Get the user's phone number from the Firestore collection
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      String userId = user.uid;
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get()
-          .then((snapshot) {
-        if (snapshot.exists) {
-          String? phone = snapshot.data()?['phone'] as String?;
-          if (phone != null) {
-            _retrieveData(phone);
-          }
-        }
-      });
-    }
+    initializeData();
   }
+
+  Future<void> initializeData() async {
+    await fetchComapnyname().then((fieldName) {
+      if (fieldName != null) {
+        fetchedFieldName = fieldName;
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          String userId = user.uid;
+          FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get()
+              .then((snapshot) {
+            if (snapshot.exists) {
+              String? phone = snapshot.data()?['phone'] as String?;
+              if (phone != null) {
+                _retrieveData(phone);
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+
+
 
 
   @override
