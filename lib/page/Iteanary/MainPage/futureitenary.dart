@@ -145,7 +145,7 @@ class _FutureItenaryState extends State<FutureItenary> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => TravellerScreen(
-                              value: collection,
+                              value: documentId,
                             ),
                           ),
                         );

@@ -122,7 +122,7 @@ class _SelectCarState extends State<SelectCar> {
       content: Text('Data saved successfully!'),
     ));
 
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => Collections()),
     );
   }

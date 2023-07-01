@@ -133,7 +133,10 @@ class _NewCarState extends State<NewCar> {
               ),
               TextField(
                 controller: _sittingcapacity,
+                keyboardType: TextInputType.number,
+
                 decoration: InputDecoration(
+
                   labelText: 'Sitting Capacity',
                 ),
               ),

@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:outdoor_admin/page/Driver/DriverManager.dart';
 import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
 import 'package:outdoor_admin/page/Stays/StayManager.dart';
@@ -139,6 +138,7 @@ class _PhoneNumberAuthState extends State<PhoneNumberAuth> {
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _phoneNumberController,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Enter Phone Number',
                     border: OutlineInputBorder(
@@ -170,6 +170,8 @@ class _PhoneNumberAuthState extends State<PhoneNumberAuth> {
                     children: [
                       TextFormField(
                         controller: _otpController,
+                        keyboardType: TextInputType.number,
+
                         decoration: InputDecoration(
                           labelText: 'Enter OTP',
                           border: OutlineInputBorder(

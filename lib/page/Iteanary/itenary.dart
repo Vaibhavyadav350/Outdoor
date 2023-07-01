@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:outdoor_admin/noe_box.dart';
 
 // import 'package:flutter_sms/flutter_sms.dart';
 import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
@@ -15,17 +16,20 @@ class Itenary extends StatefulWidget {
   late String pax;
   late String travellerid;
   late String groupLeadContact;
+  late String groupLeadname;
 
   Itenary(
       {Key? key,
       required this.pax,
       required this.travellerid,
-      required this.groupLeadContact})
+      required this.groupLeadContact,
+      required this.groupLeadname
+      })
       : super(key: key);
 
   @override
   _ItenaryState createState() =>
-      _ItenaryState(pax, travellerid, groupLeadContact);
+      _ItenaryState(pax, travellerid, groupLeadContact,groupLeadname);
 }
 
 class _ItenaryState extends State<Itenary> {
@@ -52,8 +56,9 @@ class _ItenaryState extends State<Itenary> {
   String travellerid;
   String pax;
   String groupLeadContact;
+  String groupLeadname;
 
-  _ItenaryState(this.pax, this.travellerid, this.groupLeadContact);
+  _ItenaryState(this.pax, this.travellerid, this.groupLeadContact,this.groupLeadname);
 
   @override
   void initState() {
@@ -97,7 +102,7 @@ class _ItenaryState extends State<Itenary> {
               for (int i = 0; i < phoneArray.length; i++) {
                 if (phoneArray[i] is Map<String, dynamic>) {
                   Map<String, dynamic> map =
-                  Map<String, dynamic>.from(phoneArray[i]);
+                      Map<String, dynamic>.from(phoneArray[i]);
                   if (map.containsValue(phone)) {
                     fetchedFieldName = map.keys.first;
                     break;
@@ -115,6 +120,7 @@ class _ItenaryState extends State<Itenary> {
   }
 
   void _generateDropdowns() {
+    numDropdowns = finaldate.difference(initialDate).inDays;
     dropdownDates.clear();
     dropdownValues.clear();
     for (int i = 0; i < numDropdowns; i++) {
@@ -144,6 +150,7 @@ class _ItenaryState extends State<Itenary> {
   }
 
   void _saveToFirestore() async {
+    numDropdowns = finaldate.difference(initialDate).inDays;
     _collectionNameController.text = travellerid;
     CollectionReference collectionRef = FirebaseFirestore.instance
         .collection(fetchedFieldName!)
@@ -165,7 +172,8 @@ class _ItenaryState extends State<Itenary> {
         .set({
       'optionValue': _collectionNameController.text,
       'timestamp': finaldate,
-      'GroupContact': groupLeadContact
+      'GroupContact': groupLeadContact,
+      'name':groupLeadname
     });
 
     for (int i = 0; i < numDropdowns; i++) {
@@ -188,6 +196,7 @@ class _ItenaryState extends State<Itenary> {
           'selectedDate': dropdownValues[j]['selectedDate'],
           'dropdownValue': dropdownValues[j]['dropdownValue'],
           'groupLeadContact': groupLeadContact,
+          'groupLeadname':groupLeadname
         };
         dropdownStayArray.add(dropdownValueMap);
       }
@@ -208,6 +217,7 @@ class _ItenaryState extends State<Itenary> {
           'pax': pax,
           'selectedDate': dropdownValues[i]['selectedDate'],
           'groupLeadContact': groupLeadContact,
+          'groupLeadname':groupLeadname
         };
         dropdownStayArray.add(dropdownValueMap);
       }
@@ -256,7 +266,7 @@ class _ItenaryState extends State<Itenary> {
           // The company name has been fetched successfully
           // Continue building the widget tree
           return Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.grey[300],
             appBar: AppBar(
               title: Text('Create Itinery'),
             ),
@@ -329,95 +339,118 @@ class _ItenaryState extends State<Itenary> {
             ),
             body: Column(
               children: [
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: SingleChildScrollView(
                     physics: BouncingScrollPhysics(),
                     child: Column(
                       children: [
+
                         SizedBox(height: 10),
-                        TextField(
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            numDropdowns = int.parse(value);
-                            _generateDropdowns();
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Enter number of Days',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
+                        NeoBox(
+                          value: TextField(
+                            onChanged: (value) {
+                              try {
+                                int parsedValue = int.parse(value);
+                                if (parsedValue > 0) {
+                                  numDropdownsvendor = parsedValue;
+                                  _generateDropdownsforvendor();
+                                }
+                              } catch(e) {
+                                numDropdownsvendor = 0;
+                              }
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Enter number of Drivers',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
                             ),
                           ),
                         ),
-                        SizedBox(height: 10),
-                        TextField(
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            numDropdownsvendor = int.parse(value);
-                            _generateDropdownsforvendor();
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Enter number of Drivers',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
+                            SizedBox(height: 20),
+                            NeoBox(
+                              value: Row(
+                                children: [
+                                  Text('Initial Date: ',style: TextStyle(fontSize: 20),),
+                                  GestureDetector(
+                                    onTap: () async {
+                                      DateTime? pickedDate = await showDatePicker(
+                                        context: context,
+                                        initialDate: initialDate,
+                                        firstDate: DateTime(2000),
+                                        lastDate: DateTime(2100),
+                                      );
+                                      if (pickedDate != null) {
+                                        setState(() {
+                                          initialDate = pickedDate;
+                                          _generateDropdowns();
+                                        });
+                                      }
+                                    },
+                                    child: Text(
+                                      '${initialDate.toLocal().toString().split(' ')[0]}',
+                                      style: TextStyle(fontSize: 20, color: Colors.green),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
+                            SizedBox(height: 20),
+
+                            SizedBox(width: 10),
+                            NeoBox(
+                              value: Row(
+                                children: [
+                                  Text('Final Date: ',style: TextStyle(fontSize: 20),),
+                                  GestureDetector(
+                                    onTap: () async {
+                                      DateTime? pickedDate = await showDatePicker(
+                                        context: context,
+                                        initialDate: finaldate,
+                                        firstDate: DateTime(2000),
+                                        lastDate: DateTime(2100),
+                                      );
+                                      if (pickedDate != null) {
+                                        setState(() {
+                                          finaldate = pickedDate;
+                                          _generateDropdowns();
+                                        });
+                                      }
+                                    },
+                                    child: Text(
+                                      '${finaldate.toLocal().toString().split(' ')[0]}',
+                                      style: TextStyle(fontSize: 20, color: Colors.green),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+
+                        // TextField(
+                        //   keyboardType: TextInputType.number,
+                        //   onChanged: (value) {
+                        //     numDropdowns = int.parse(value);
+                        //     _generateDropdowns();
+                        //   },
+                        //   decoration: InputDecoration(
+                        //     hintText: 'Enter number of Days',
+                        //     border: OutlineInputBorder(
+                        //       borderRadius: BorderRadius.circular(15),
+                        //     ),
+                        //   ),
+                        // ),
+                        SizedBox(height: 20),
+
                       ],
                     ),
                   ),
                 ),
                 SizedBox(height: 10),
                 SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(width: 10),
-                    Text('Initial Date: '),
-                    SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: initialDate,
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
-                        if (pickedDate != null) {
-                          setState(() {
-                            initialDate = pickedDate;
-                            _generateDropdowns();
-                          });
-                        }
-                      },
-                      child: Text(
-                        '${initialDate.toLocal().toString().split(' ')[0]}',
-                        style: TextStyle(fontSize: 16, color: Colors.green),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Text('Final Date: '),
-                    GestureDetector(
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: finaldate,
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
-                        if (pickedDate != null) {
-                          setState(() {
-                            finaldate = pickedDate;
-                            _generateDropdowns();
-                          });
-                        }
-                      },
-                      child: Text(
-                        '${finaldate.toLocal().toString().split(' ')[0]}',
-                        style: TextStyle(fontSize: 16, color: Colors.green),
-                      ),
-                    ),
-                  ],
-                ),
+
                 StreamBuilder<QuerySnapshot>(
                   stream: vendorDropdownCollection.snapshots(),
                   builder: (BuildContext context,
@@ -557,24 +590,36 @@ class _ItenaryState extends State<Itenary> {
                     },
                   ),
                 ),
-                Container(
-                  width: 130,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _saveToFirestore();
-                      //  Navigator.pushNamed(context, routeName)
-                    },
-                    child: Row(
-                      children: [
-                        Text('Proceed'),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          color: Colors.grey,
-                        )
-                      ],
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 60,
+                    width: 160,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Your onPressed function
+                        _saveToFirestore();
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Proceed',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          SizedBox(width: 10),
+                          Icon(Icons.arrow_forward_ios),
+                        ],
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        primary: Colors.blue,
+                      ),
                     ),
                   ),
-                ),
+                )
               ],
             ),
           );

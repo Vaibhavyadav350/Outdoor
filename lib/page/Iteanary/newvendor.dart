@@ -165,6 +165,7 @@ class _NewVendorsState extends State<NewVendors> {
                 ),
               ),
               TextField(
+                keyboardType: TextInputType.number,
                 controller: _driverphonenumber,
                 decoration: InputDecoration(
                   labelText: 'Driver PhoneNumber',

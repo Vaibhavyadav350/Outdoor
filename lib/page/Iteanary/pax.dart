@@ -7,6 +7,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:twilio_flutter/twilio_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:velocity_x/velocity_x.dart';
 
 
 class Pax extends StatefulWidget {
@@ -20,6 +21,7 @@ class _PaxState extends State<Pax> {
   late TextEditingController _pax;
   late TextEditingController _travellerid;
   late TextEditingController _groupLeadContact;
+  late TextEditingController _groupLeadname;
   String? fetchedFieldName;
   // //late TwilioFlutter twilioFlutter;
   // TwilioFlutter twilioFlutter = TwilioFlutter(
@@ -36,6 +38,7 @@ class _PaxState extends State<Pax> {
     _pax = TextEditingController();
     _travellerid = TextEditingController();
     _groupLeadContact = TextEditingController();
+    _groupLeadname = TextEditingController();
 
     // Generate and set the initial value of traveler ID
     fetchComapnyname().then((_) {
@@ -112,14 +115,25 @@ class _PaxState extends State<Pax> {
     CollectionReference travelersCollection =
     FirebaseFirestore.instance.collection('travelers');
 
-    // Create a new document with the generated traveler ID
-    await travelersCollection.add({
-      'numericId': int.parse(travelerId.substring(9)), // Extract the numeric ID from the traveler ID
-      // Add other fields as per your requirements
-    });
+    int substringStartIndex = 9;
+    int travelerIdLength = travelerId.length;
 
-    // twilioFlutter.sendWhatsApp(toNumber : '+919450188251',
-    //     messageBody : 'hello world');
+    // Check if the substring start index is within the bounds of the travelerId string
+    if (substringStartIndex < travelerIdLength) {
+      String numericIdString = travelerId.substring(substringStartIndex);
+      int numericId = int.parse(numericIdString);
+
+      // Create a new document with the generated traveler ID
+      await travelersCollection.add({
+        'numericId': numericId,
+        // Add other fields as per your requirements
+      });
+
+      // twilioFlutter.sendWhatsApp(
+      //     toNumber: '+919450188251', messageBody: 'hello world');
+    } else {
+      print('Substring start index is out of range for travelerId: $travelerId');
+    }
   }
 
   // void sendSMSMessage(String phoneNumber, String message) async {
@@ -169,6 +183,7 @@ class _PaxState extends State<Pax> {
                     ListTile(
                       leading: Icon(Icons.group_add, color: Colors.green),
                       title: TextField(
+                        keyboardType: TextInputType.number,
                         controller: _pax,
                         decoration: InputDecoration(
                           hintText: 'PAX',
@@ -182,6 +197,7 @@ class _PaxState extends State<Pax> {
                     ListTile(
                       leading: Icon(Icons.numbers, color: Colors.red),
                       title: TextField(
+
                         controller: _travellerid,
                         enabled: false,
                         decoration: InputDecoration(
@@ -196,6 +212,7 @@ class _PaxState extends State<Pax> {
                     ListTile(
                       leading: Icon(Icons.phone, color: Colors.blue),
                       title: TextField(
+                        keyboardType: TextInputType.number,
                         controller: _groupLeadContact,
                         decoration: InputDecoration(
                           hintText: 'Group Contact Lead',
@@ -205,6 +222,18 @@ class _PaxState extends State<Pax> {
                         ),
                       ),
                     ),
+                    ListTile(
+                      leading: Icon(Icons.person, color: Colors.blue),
+                      title: TextField(
+                        controller: _groupLeadname,
+                        decoration: InputDecoration(
+                          hintText: 'Group Lead Name',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                      ),
+                     ),
                     SizedBox(height: 50),
                     Container(
                       width: 150,
@@ -213,6 +242,7 @@ class _PaxState extends State<Pax> {
                           String pax = _pax.text;
                           String travelerId = _travellerid.text;
                           String groupLeadContact = _groupLeadContact.text;
+                          String groupLeadname = _groupLeadname.text;
                           await saveTravelerIdToFirestore(travelerId);
                           // Send WhatsApp message
                           // String phoneNumber = groupLeadContact;
@@ -230,6 +260,7 @@ class _PaxState extends State<Pax> {
                                 pax: pax,
                                 travellerid: travelerId,
                                 groupLeadContact: groupLeadContact,
+                                groupLeadname: groupLeadname
                               ),
                             ),
                           );

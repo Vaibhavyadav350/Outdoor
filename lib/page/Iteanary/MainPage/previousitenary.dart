@@ -145,7 +145,7 @@ class _PreviousItenaryState extends State<PreviousItenary> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => TravellerScreen(
-                              value: collection,
+                              value: documentId,
                             ),
                           ),
                         );

@@ -152,6 +152,7 @@ class _AddStaysState extends State<AddStays> {
               ),
               SizedBox(height: 16.0),
               TextField(
+                keyboardType: TextInputType.number,
                 controller: _phoneController,
                 decoration: InputDecoration(
                   labelText: 'Enter Phone Number',

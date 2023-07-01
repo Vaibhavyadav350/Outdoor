@@ -32,16 +32,16 @@ class _TravellerScreenState extends State<TravellerScreen> {
 
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _documents = [];
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _vendordocuments = [];
-  String? fetchedFieldName='';
+  String? fetchedFieldName = '';
 
   @override
   void initState() {
     super.initState();
     fetchComapnyname().then((_) {
+      print('Fetch company name completed');
       _fetchData();
     });
-     // Call fetchData function when the screen is initialized
-
+    // Call fetchData function when the screen is initialized
   }
 
   @override
@@ -49,12 +49,16 @@ class _TravellerScreenState extends State<TravellerScreen> {
     _collectionNameController.dispose();
     super.dispose();
   }
+
   Future<void> fetchComapnyname() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String userId = user.uid;
-      DocumentSnapshot<Map<String, dynamic>> snapshot =
-      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(userId)
+          .get();
 
       if (snapshot.exists) {
         String? phone = snapshot.data()?['phone'] as String?;
@@ -83,15 +87,17 @@ class _TravellerScreenState extends State<TravellerScreen> {
           }
         }
       }
-    }
-    else {
+    } else {
       fetchedFieldName = null;
       return;
     }
+
+    print('Fetched field name: $fetchedFieldName');
   }
 
   Future<void> _fetchData() async {
     print("name :: $fetchedFieldName");
+    print(_collectionNameController.text);
     // Fetch data from Firestore
     if (fetchedFieldName == null || fetchedFieldName!.isEmpty) {
       return;
@@ -131,9 +137,9 @@ class _TravellerScreenState extends State<TravellerScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.grey[300],
-
       body: Container(
         child: ListView(
           children: [
@@ -166,16 +172,15 @@ class _TravellerScreenState extends State<TravellerScreen> {
                     width: 60,
                     child: NeoBox(
                       value: IconButton(
-                        icon: Icon(Icons.menu), onPressed: () {  },
+                        icon: Icon(Icons.menu),
+                        onPressed: () {},
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(
-                height: 200,
-                child: Lottie.asset('assets/trvls.json')),
+            SizedBox(height: 200, child: Lottie.asset('assets/trvls.json')),
 
             SizedBox(height: 16.0),
             // ElevatedButton(
@@ -247,9 +252,10 @@ class _TravellerScreenState extends State<TravellerScreen> {
                                     }
                                   },
                                   child: NeuBox(
-                                    value:  Image.asset(
+                                    value: Image.asset(
                                       "assets/images/location.png",
-                                      width: 24, // Set the desired width of the image
+                                      width: 24,
+                                      // Set the desired width of the image
                                       height: 24,
                                     ),
                                   ),
@@ -260,17 +266,16 @@ class _TravellerScreenState extends State<TravellerScreen> {
                                 Row(
                                   children: [
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-
-                                          Text(
-                                            data['dropdownValue'],
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                        Text(
+                                          data['dropdownValue'],
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
                                           ),
-
+                                        ),
                                         Text(
                                           'Date: $formattedDate',
                                           style: TextStyle(
@@ -290,10 +295,13 @@ class _TravellerScreenState extends State<TravellerScreen> {
                                     Container(
                                       child: isFutureDate
                                           ? NeuBox(
-                                            value: Icon(Icons.check,
-                                                color: Colors.green),
-                                          )
-                                          : null,
+                                              value: Icon(Icons.check,
+                                                  color: Colors.green),
+                                            )
+                                          : NeuBox(
+                                        value: Icon(Icons.check,
+                                            color: Colors.grey),
+                                      ),
                                     )
                                   ],
                                 )
@@ -328,135 +336,146 @@ class _TravellerScreenState extends State<TravellerScreen> {
                     String driver = vdata['vendor']['Driver'];
                     String drivingLicense = vdata['vendor']['DriverLicense'];
                     String driverphone = vdata['vendor']['DriverPhone'];
-                    return  Container(
+                    return Container(
                       margin: EdgeInsets.only(bottom: 16.0),
                       child: SizedBox(
                         height: 60,
-
                         width: 350,
                         child: NeoBox(
-                            // leading:
-                            value: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                NeuBox(
-                                  value: Row(
-                                    children: [
-                                      Image.asset("assets/images/drivr.png",
-                                      height:24,width: 24,
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Row(
+                          // leading:
+                          value: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              NeuBox(
+                                value: Row(
                                   children: [
-
-
-                                        GestureDetector(
-                                          onTap:(){
-                                            showModalBottomSheet(context: context,
-                                                backgroundColor: Colors.grey[300],
-                                                barrierColor: Colors.black87.withOpacity(0.5),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top:Radius.circular(30))),
-                                              builder: (context) => Container(
+                                    Image.asset(
+                                      "assets/images/drivr.png",
+                                      height: 24,
+                                      width: 24,
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      showModalBottomSheet(
+                                          context: context,
+                                          backgroundColor: Colors.grey[300],
+                                          barrierColor:
+                                              Colors.black87.withOpacity(0.5),
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.vertical(
+                                                      top:
+                                                          Radius.circular(30))),
+                                          builder: (context) => Container(
                                                 height: 300,
                                                 child: Center(
                                                   child: Column(
-                                                     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceAround,
                                                     children: [
                                                       SizedBox(
-                                                        height: 100,
-                                                        width: 100,
-                                                        child:
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius: BorderRadius.circular(100),
-                                                              child: Image.asset("assets/images/ad.jpg"),
-                                                            ),
-
-                                                          ],
-                                                        )
-                                                      ),
-                                                      SizedBox(
-                                                        height: 60,
-                                                        width: 300,
-                                                        child: NeoBox(
-                                                          value:Column(
-                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                          children: [
-                                                            Text(
-                                                              "License: $drivingLicense",
-                                                              style: TextStyle(
-                                                                  fontWeight: FontWeight.bold,
-                                                                  color: Colors.grey[700]
+                                                          height: 100,
+                                                          width: 100,
+                                                          child: Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            100),
+                                                                child: Image.asset(
+                                                                    "assets/images/ad.jpg"),
                                                               ),
-                                                            ),
-
-                                                          ],
-                                                        ) ,),
+                                                            ],
+                                                          )),
+                                                      SizedBox(
+                                                        height: 60,
+                                                        width: 300,
+                                                        child: NeoBox(
+                                                          value: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              Text(
+                                                                "License: $drivingLicense",
+                                                                style: TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: Colors
+                                                                            .grey[
+                                                                        700]),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
                                                       ),
                                                       SizedBox(
                                                         height: 60,
                                                         width: 300,
                                                         child: NeoBox(
-                                                          value:Column(
-                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                          value: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
                                                             children: [
                                                               Text(
                                                                 "Number: $driverphone",
                                                                 style: TextStyle(
-                                                                    fontWeight: FontWeight.bold,
-                                                                    color: Colors.grey[700]
-                                                                ),
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: Colors
+                                                                            .grey[
+                                                                        700]),
                                                               ),
                                                             ],
-                                                          )
-                                                          ,),
+                                                          ),
+                                                        ),
                                                       ),
-
                                                     ],
                                                   ),
                                                 ),
-                                              )
-                                            );
-                                          },
-                                          child: Text(
-                                            "Driver: $driver",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 20
-                                            ),
-                                          ),
-                                        ),
-
-
-
+                                              ));
+                                    },
+                                    child: Text(
+                                      "Driver: $driver",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              NeuBox(
+                                value: Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        String phoneNumber = driverphone.replaceAll(
+                                            RegExp(r'[^0-9]'),
+                                            ''); // Remove non-numeric characters from the phone number
+                                        String telUrl =
+                                            'tel:$phoneNumber'; // Construct the tel URL
+                                        launch(telUrl); // Launch the phone call
+                                      },
+                                      child: Icon(
+                                        Icons.phone,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
                                   ],
                                 ),
-                                NeuBox(
-                                  value: Row(
-                                    children: [
-                                      GestureDetector(
-                                          onTap: () {
-                                            String phoneNumber = driverphone.replaceAll(
-                                                RegExp(r'[^0-9]'),
-                                                ''); // Remove non-numeric characters from the phone number
-                                            String telUrl =
-                                                'tel:$phoneNumber'; // Construct the tel URL
-                                            launch(telUrl); // Launch the phone call
-                                          },
-                                          child: Icon(
-                                            Icons.phone,
-                                            color: Colors.blue,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -486,114 +505,130 @@ class _TravellerScreenState extends State<TravellerScreen> {
                             children: [
                               Row(
                                 children: [
-                                  SizedBox(width: 30,),
-                                  NeuBox(
-                                    value: Image.asset("assets/images/car.png",
-                                      height:24,width: 24,
-                                    )
+                                  SizedBox(
+                                    width: 30,
                                   ),
-                                  SizedBox(width: 30,)
+                                  NeuBox(
+                                      value: Image.asset(
+                                    "assets/images/car.png",
+                                    height: 24,
+                                    width: 24,
+                                  )),
+                                  SizedBox(
+                                    width: 30,
+                                  )
                                 ],
                               ),
-                               Row(
-                                  children: [
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        GestureDetector(
-                                          onTap:(){
-                                            showModalBottomSheet(context: context,
-                                                backgroundColor: Colors.grey[300],
-                                                barrierColor: Colors.black87.withOpacity(0.5),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top:Radius.circular(30))),
-                                                builder: (context) => Container(
-                                                  height: 300,
-                                                  child: Center(
-                                                    child: Column(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                      children: [
-                                                        SizedBox(
-                                                            height: 100,
-                                                            width: 100,
-                                                            child:
-                                                            Column(
-                                                              children: [
-                                                                ClipRRect(
-                                                                  borderRadius: BorderRadius.circular(100),
-                                                                  child: Image.asset("assets/images/driver.jpg"),
-                                                                ),
-
-                                                              ],
-                                                            )
-                                                        ),
-                                                        SizedBox(
-                                                          height: 60,
-                                                          width: 300,
-                                                          child: NeoBox(
-                                                            value:Column(
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                Text(
-                                                                  "Car Number: $carNumber",
-                                                                  style: TextStyle(
-                                                                      fontWeight: FontWeight.bold,
-                                                                      color: Colors.grey[700]
+                              Row(
+                                children: [
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                              context: context,
+                                              backgroundColor: Colors.grey[300],
+                                              barrierColor: Colors.black87
+                                                  .withOpacity(0.5),
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.vertical(
+                                                          top: Radius.circular(
+                                                              30))),
+                                              builder: (context) => Container(
+                                                    height: 300,
+                                                    child: Center(
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceAround,
+                                                        children: [
+                                                          SizedBox(
+                                                              height: 100,
+                                                              width: 100,
+                                                              child: Column(
+                                                                children: [
+                                                                  ClipRRect(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            100),
+                                                                    child: Image
+                                                                        .asset(
+                                                                            "assets/images/driver.jpg"),
                                                                   ),
-                                                                ),
-
-                                                              ],
-                                                            ) ,),
-                                                        ),
-                                                      ],
+                                                                ],
+                                                              )),
+                                                          SizedBox(
+                                                            height: 60,
+                                                            width: 300,
+                                                            child: NeoBox(
+                                                              value: Column(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .center,
+                                                                children: [
+                                                                  Text(
+                                                                    "Car Number: $carNumber",
+                                                                    style: TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .bold,
+                                                                        color: Colors
+                                                                            .grey[700]),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
-                                                  ),
-                                                )
-                                            );
-                                          },
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                "Car: ",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.grey[700],
-                                                    fontSize: 20),
-                                              ),
-                                              Text(
-                                                "$car",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20),
-                                              ),
-                                            ],
-                                          ),
+                                                  ));
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              "Car: ",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey[700],
+                                                  fontSize: 20),
+                                            ),
+                                            Text(
+                                              "$car",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20),
+                                            ),
+                                          ],
                                         ),
-                                        // Row(
-                                        //   children: [
-                                        //     Text(
-                                        //       "Car Number: ",
-                                        //       style: TextStyle(
-                                        //           fontSize: 15,
-                                        //           color: Colors.grey[700],
-                                        //           fontWeight: FontWeight.w500
-                                        //           // color: Colors.grey.shade700,
-                                        //           ),
-                                        //     ),
-                                        //     Text(
-                                        //       "$carNumber",
-                                        //       style: TextStyle(
-                                        //           fontSize: 15,
-                                        //           fontWeight: FontWeight.w500),
-                                        //     ),
-                                        //   ],
-                                        // ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-
+                                      ),
+                                      // Row(
+                                      //   children: [
+                                      //     Text(
+                                      //       "Car Number: ",
+                                      //       style: TextStyle(
+                                      //           fontSize: 15,
+                                      //           color: Colors.grey[700],
+                                      //           fontWeight: FontWeight.w500
+                                      //           // color: Colors.grey.shade700,
+                                      //           ),
+                                      //     ),
+                                      //     Text(
+                                      //       "$carNumber",
+                                      //       style: TextStyle(
+                                      //           fontSize: 15,
+                                      //           fontWeight: FontWeight.w500),
+                                      //     ),
+                                      //   ],
+                                      // ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                           // subtitle:

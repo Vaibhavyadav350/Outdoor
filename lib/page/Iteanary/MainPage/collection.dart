@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:outdoor_admin/page/Iteanary/MainPage/futureitenary.dart';
 import 'package:outdoor_admin/page/Iteanary/pax.dart';
 import 'package:outdoor_admin/page/Iteanary/MainPage/previousitenary.dart';
+import '../../../Trips/addinfo.dart';
+import '../../../Trips/trip_grid.dart';
 import '../../../routes.dart';
 import '../newcar.dart';
 import 'ongoingItenary.dart';
@@ -76,15 +78,15 @@ class _CollectionsState extends State<Collections> {
                 );
               },
             ),
-            ListTile(
-              leading: Icon(Icons.people,color: Colors.redAccent,),
-              title: const Text('Travellers'),
-              onTap: () {
-                // Update the state of the app.
-                // ...
-                Navigator.pushNamed(context,MyRoutes.travellers);
-              },
-            ),
+            // ListTile(
+            //   leading: Icon(Icons.people,color: Colors.redAccent,),
+            //   title: const Text('Travellers'),
+            //   onTap: () {
+            //     // Update the state of the app.
+            //     // ...
+            //     Navigator.pushNamed(context,MyRoutes.travellers);
+            //   },
+            // ),
             ListTile(
               leading: Icon(Icons.done_all,color: Colors.redAccent,),
               title: const Text('Create Itenary'),
@@ -92,6 +94,25 @@ class _CollectionsState extends State<Collections> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                       builder: (context) => Pax()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.add,color: Colors.redAccent,),
+              title: const Text('Add Trip Info'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) => TripInfo()),
+                );
+              },
+            ),ListTile(
+              leading: Icon(Icons.info,color: Colors.redAccent,),
+              title: const Text('Trip Details'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) => TripGrid()),
                 );
               },
             ),

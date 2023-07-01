@@ -145,7 +145,7 @@ class _OngoingState extends State<Ongoing> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => TravellerScreen(
-                              value: collection,
+                              value: documentId,
                             ),
                           ),
                         );
