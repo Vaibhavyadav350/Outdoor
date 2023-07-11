@@ -72,10 +72,10 @@ class _OngoingState extends State<Ongoing> {
 
   Future<List<Map<String, dynamic>>> getCollections(String fieldName) async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection(fieldName)
-        .doc('Users')
+        // .collection(fieldName)
+        // .doc('Users')
         .collection('Users')
-        .where('timestamp')
+        .where('timestamp').where('company', isEqualTo: fieldName)
         .get();
 
     List<Map<String, dynamic>> collections = [];

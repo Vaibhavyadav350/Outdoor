@@ -109,13 +109,17 @@ class _PaxState extends State<Pax> {
     // Increment the latest numeric ID by 1 to generate a new traveler ID
     int newNumericId = latestNumericId + 1;
 
-    return '$fetchedFieldName'+ '2023$newNumericId'; // Return the generated traveler ID
+    return '$fetchedFieldName'+ '2023$newNumericId';
+
+    // Return the generated traveler ID
   }
-  Future<void> saveTravelerIdToFirestore(String travelerId) async {
+  Future<void> saveTravelerIdToFirestore(String travelerId, String groupLeadContact) async {
+    print("trvid: $travelerId" );
+    String phoneValue = groupLeadContact;
     CollectionReference travelersCollection =
     FirebaseFirestore.instance.collection('travelers');
 
-    int substringStartIndex = 9;
+    int substringStartIndex = 1;
     int travelerIdLength = travelerId.length;
 
     // Check if the substring start index is within the bounds of the travelerId string
@@ -123,40 +127,34 @@ class _PaxState extends State<Pax> {
       String numericIdString = travelerId.substring(substringStartIndex);
       int numericId = int.parse(numericIdString);
 
+      print("trvid: $travelerId" );
+      print("trvid: $numericId" );
       // Create a new document with the generated traveler ID
       await travelersCollection.add({
         'numericId': numericId,
         // Add other fields as per your requirements
       });
 
-      // twilioFlutter.sendWhatsApp(
-      //     toNumber: '+919450188251', messageBody: 'hello world');
     } else {
       print('Substring start index is out of range for travelerId: $travelerId');
     }
+
+
+    FirebaseFirestore.instance
+        .collection('number')
+        .doc('Traveller')
+        .update({
+      'phone': FieldValue.arrayUnion([
+        {'$fetchedFieldName':phoneValue}
+      ])
+    });
+    FirebaseFirestore.instance
+        .collection('number')
+        .doc('Traveller')
+        .update({
+      'num': FieldValue.arrayUnion([phoneValue])
+    });
   }
-
-  // void sendSMSMessage(String phoneNumber, String message) async {
-  //   List<String> recipients = [phoneNumber];
-  //   await sendSMS(message: message, recipients: recipients,sendDirect: true)
-  //       .catchError((onError) {
-  //     print(onError);
-  //   });
-  //
-  //
-  // }
-
-
-
-  // void sendWhatsAppMessage(String phoneNumber, String message) async {
-  //   String url = "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}";
-  //   if (await canLaunch(url)) {
-  //     await launch(url);
-  //   } else {
-  //     throw 'Could not launch $url';
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     const List<String> list1 = <String>['5 Seater', '7 Seater'];
@@ -243,7 +241,8 @@ class _PaxState extends State<Pax> {
                           String travelerId = _travellerid.text;
                           String groupLeadContact = _groupLeadContact.text;
                           String groupLeadname = _groupLeadname.text;
-                          await saveTravelerIdToFirestore(travelerId);
+
+                          await saveTravelerIdToFirestore(travelerId,groupLeadContact);
                           // Send WhatsApp message
                           // String phoneNumber = groupLeadContact;
                           // String message = "Your trip with traveler ID: $travelerId has been created.";

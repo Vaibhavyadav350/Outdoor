@@ -67,12 +67,13 @@ class _NewCarState extends State<NewCar> {
 
     if (vendorname.isNotEmpty && fetchedFieldName != null) {
       FirebaseFirestore.instance
-          .collection(fetchedFieldName!) // Use the fetched field name
-          .doc('Vendors')
+          // .collection(fetchedFieldName!) // Use the fetched field name
+          // .doc('Vendors')
           .collection('vendors')
           .doc(vendorname)
           .collection('vehicle')
           .add({
+        'company':fetchedFieldName,
         'CarName': carname,
         'CarNumber': carnumber,
         'SittingCapacity': sittingcapacity,
@@ -81,11 +82,11 @@ class _NewCarState extends State<NewCar> {
           .catchError((error) => print('Failed to add option: $error'));
 
       FirebaseFirestore.instance
-          .collection(fetchedFieldName!) // Use the fetched field name
-          .doc('Vendors')
+          // .collection(fetchedFieldName!) // Use the fetched field name
+          // .doc('Vendors')
           .collection('vendors')
           .doc(vendorname)
-          .set({'vendorname': vendorname});
+          .set({'vendorname': vendorname,'company':fetchedFieldName,});
 
       _vendorname.clear();
       _carname.clear();

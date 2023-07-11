@@ -7,6 +7,8 @@ import 'package:outdoor_admin/page/Iteanary/MainPage/previousitenary.dart';
 import '../../../Trips/addinfo.dart';
 import '../../../Trips/trip_grid.dart';
 import '../../../routes.dart';
+import '../../All/alldrivers.dart';
+import '../../All/allstays.dart';
 import '../newcar.dart';
 import 'ongoingItenary.dart';
 
@@ -113,6 +115,30 @@ class _CollectionsState extends State<Collections> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                       builder: (context) => TripGrid()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.house_siding_outlined,
+                color: Colors.redAccent,
+              ),
+              title: const Text('All Stays'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => AllStays()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.short_text,
+                color: Colors.redAccent,
+              ),
+              title: const Text('All Drivers'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => AllVendorPage()),
                 );
               },
             ),

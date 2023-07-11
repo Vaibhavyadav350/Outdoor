@@ -10,6 +10,7 @@ import 'package:outdoor_admin/page/Iteanary/selectcar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../routes.dart';
+import '../All/allstays.dart';
 //import '../../services/auth.dart';
 
 class Itenary extends StatefulWidget {
@@ -65,16 +66,13 @@ class _ItenaryState extends State<Itenary> {
     super.initState();
     fetchComapnyname().then((_) {
       dropdownsCollection = FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('Stays')
+
           .collection('Stays');
       vendorDropdownCollection = FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('Vendors')
+
           .collection('vendors');
       userCollection = FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('User')
+
           .collection('Users');
     });
   }
@@ -153,27 +151,22 @@ class _ItenaryState extends State<Itenary> {
     numDropdowns = finaldate.difference(initialDate).inDays;
     _collectionNameController.text = travellerid;
     CollectionReference collectionRef = FirebaseFirestore.instance
-        .collection(fetchedFieldName!)
-        .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
         .collection(_collectionNameController.text);
     CollectionReference collectionRefvendor = FirebaseFirestore.instance
-        .collection(fetchedFieldName!)
-        .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
         .collection('vendor');
     FirebaseFirestore.instance
-        .collection(fetchedFieldName!)
-        .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
         .set({
       'optionValue': _collectionNameController.text,
       'timestamp': finaldate,
       'GroupContact': groupLeadContact,
-      'name':groupLeadname
+      'name':groupLeadname,
+      'company':fetchedFieldName
     });
 
     for (int i = 0; i < numDropdowns; i++) {
@@ -192,6 +185,7 @@ class _ItenaryState extends State<Itenary> {
 
       for (int j = 0; j < numDropdowns; j++) {
         Map<String, dynamic> dropdownValueMap = {
+          'company':fetchedFieldName,
           'pax': pax,
           'selectedDate': dropdownValues[j]['selectedDate'],
           'dropdownValue': dropdownValues[j]['dropdownValue'],
@@ -202,11 +196,10 @@ class _ItenaryState extends State<Itenary> {
       }
 
       await FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('DriverInfo')
+
           .collection('DriverInfo')
           .doc(selectedDriverValue[i]['Driver'])
-          .update({'Driver': FieldValue.arrayUnion(dropdownStayArray)});
+          .update({'Driver': FieldValue.arrayUnion(dropdownStayArray),'company':{fetchedFieldName},});
     }
 
     for (int i = 0; i < numDropdowns; i++) {
@@ -214,6 +207,7 @@ class _ItenaryState extends State<Itenary> {
 
       for (int j = 0; j < numDropdownsvendor; j++) {
         Map<String, dynamic> dropdownValueMap = {
+          'company':fetchedFieldName,
           'pax': pax,
           'selectedDate': dropdownValues[i]['selectedDate'],
           'groupLeadContact': groupLeadContact,
@@ -223,11 +217,9 @@ class _ItenaryState extends State<Itenary> {
       }
 
       await FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('StaysInfo')
           .collection('StaysInfo')
           .doc(dropdownValues[i]['dropdownValue'])
-          .update({'dropdownValue': FieldValue.arrayUnion(dropdownStayArray)});
+          .update({'dropdownValue': FieldValue.arrayUnion(dropdownStayArray),'company':{fetchedFieldName},});
     }
 
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

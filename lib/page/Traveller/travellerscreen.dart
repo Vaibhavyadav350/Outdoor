@@ -106,8 +106,8 @@ class _TravellerScreenState extends State<TravellerScreen> {
     _collectionNameController.text = value;
     QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
         .instance
-        .collection(fetchedFieldName!)
-        .doc('Users')
+        // .collection(fetchedFieldName!)
+        // .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
         .collection(_collectionNameController.text)
@@ -124,8 +124,8 @@ class _TravellerScreenState extends State<TravellerScreen> {
 
     QuerySnapshot<Map<String, dynamic>> snapshots = await FirebaseFirestore
         .instance
-        .collection(fetchedFieldName!)
-        .doc('Users')
+        // .collection(fetchedFieldName!)
+        // .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
         .collection('vendor')

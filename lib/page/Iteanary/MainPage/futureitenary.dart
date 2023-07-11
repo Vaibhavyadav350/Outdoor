@@ -72,9 +72,9 @@ class _FutureItenaryState extends State<FutureItenary> {
 
   Future<List<Map<String, dynamic>>> getCollections(String fieldName) async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection(fieldName)
-        .doc('Users')
-        .collection('Users')
+        // .collection(fieldName)
+        // .doc('Users')
+        .collection('Users').where('company', isEqualTo: fieldName)
         .where('timestamp', isGreaterThan: DateTime.now())
         .get();
 

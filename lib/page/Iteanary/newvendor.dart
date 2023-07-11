@@ -66,25 +66,25 @@ class _NewVendorsState extends State<NewVendors> {
     String driverLicense = _driverdrivingLicense.text.trim();
     if (optionValue.isNotEmpty) {
       FirebaseFirestore.instance
-          .collection(fetchedFieldName!).doc('Vendors')
+          // .collection(fetchedFieldName!).doc('Vendors')
           .collection('vendors')
           .doc(optionValue)
           .collection(optionValue as String)
           .add({'drivername': drivername,
-        'driverphone':driverphonenumber,'driverLicense':driverLicense})
+        'driverphone':driverphonenumber,'driverLicense':driverLicense,'company':fetchedFieldName,})
           .then((value) => print('Option added'))
           .catchError((error) => print('Failed to add option: $error'
       )
       );
       FirebaseFirestore.instance
-          .collection(fetchedFieldName!).doc('Vendors')
+          // .collection(fetchedFieldName!).doc('Vendors')
           .collection('vendors').doc(optionValue)
           .set({'optionValue':optionValue});
       FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('DriverInfo')
+          // .collection(fetchedFieldName!)
+          // .doc('DriverInfo')
           .collection('DriverInfo').doc(drivername).set(
-          {'phone': driverphonenumber});
+          {'phone': driverphonenumber,'company':fetchedFieldName,});
       FirebaseFirestore.instance
           .collection('number')
           .doc('DriverInfo')
@@ -105,7 +105,6 @@ class _NewVendorsState extends State<NewVendors> {
 
 
       FirebaseFirestore.instance
-
           .collection('Driver')
           .doc(optionValue)
           .collection(optionValue as String)

@@ -67,10 +67,11 @@ class _AddStaysState extends State<AddStays> {
     String pluscode = _pluscode.text.trim();
 
     if (optionValue.isNotEmpty && phoneValue.isNotEmpty && locationValue.isNotEmpty) {
-      FirebaseFirestore.instance.collection(fetchedFieldName!).doc('Stays')
+      FirebaseFirestore.instance
           .collection('Stays')
           .doc(locationValue)
           .set({
+        'company':fetchedFieldName,
         'name': optionValue,
         'phone': phoneValue,
         'location': locationValue,
@@ -79,32 +80,33 @@ class _AddStaysState extends State<AddStays> {
           .then((value) => print('Option added'))
           .catchError((error) => print('Failed to add option: $error'));
       FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('StaysInfo')
+
           .collection('StaysInfo').doc(optionValue).set(
-          {'phone': phoneValue});
+          {'phone': phoneValue,'company':fetchedFieldName});
 
 
-      FirebaseFirestore.instance
-          .collection('Stays')
-          .doc(locationValue)
-          .set({
-        'name': optionValue,
-        'phone': phoneValue,
-        'location': locationValue,
-        'pluscode':pluscode
-      })
-
-
-
-          .then((value) => print('Option added'))
-          .catchError((error) => print('Failed to add option: $error'));
+      // FirebaseFirestore.instance
+      //     .collection('Stays')
+      //     .doc(locationValue)
+      //     .set({
+      //   'name': optionValue,
+      //   'phone': phoneValue,
+      //   'location': locationValue,
+      //   'pluscode':pluscode,
+      //   'company':fetchedFieldName,
+      // }
+      // )
+      //
+      //
+      //
+      //     .then((value) => print('Option added'))
+      //     .catchError((error) => print('Failed to add option: $error'));
 
       FirebaseFirestore.instance
           .collection('StaysInfo')
           .doc('StaysInfo')
           .collection('StaysInfo').doc(optionValue).set(
-          {'phone': phoneValue});
+          {'phone': phoneValue,'company':fetchedFieldName,});
 
 
       FirebaseFirestore.instance

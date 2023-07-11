@@ -37,16 +37,13 @@ class _SelectCarState extends State<SelectCar> {
     super.initState();
     fetchComapnyname().then((_) {
       dropdownsCollection = FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('Stays')
+
           .collection('Stays');
       vendorDropdownCollection = FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('Vendors')
+
           .collection('vendors');
       userCollection = FirebaseFirestore.instance
-          .collection(fetchedFieldName!)
-          .doc('User')
+
           .collection('Users');
     });
   }
@@ -100,21 +97,21 @@ class _SelectCarState extends State<SelectCar> {
   void _saveToFirestore() async {
     _collectionNameController.text = travellerid;
     CollectionReference collectionRef = FirebaseFirestore.instance
-        .collection(fetchedFieldName!)
-        .doc('Users')
+        // .collection(fetchedFieldName!)
+        // .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
         .collection(_collectionNameController.text);
     CollectionReference collectionRefvendor = FirebaseFirestore.instance
-        .collection(fetchedFieldName!)
-        .doc('Users')
+        // .collection(fetchedFieldName!)
+        // .doc('Users')
         .collection('Users')
         .doc(_collectionNameController.text)
         .collection('vendor');
 
     for (int i = 0; i < numDropdownsvendor; i++) {
       await collectionRefvendor.add({
-        'vendor': selectedDriverValue[i],
+        'vendor': selectedDriverValue[i],'company':fetchedFieldName,
       });
     }
 
