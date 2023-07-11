@@ -97,8 +97,6 @@ class NameStaysPage extends StatelessWidget {
                 Text('Name: $name'),
                 Text('Company: $company'),
                 Text('Phone: $phone'),
-
-
                 Text('Location: $location'),
                 Text('Pluscode: $pluscode'),
               ],
