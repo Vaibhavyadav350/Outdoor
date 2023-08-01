@@ -58,7 +58,6 @@ class _NewVendorsState extends State<NewVendors> {
       }
     }
   }
-
   void _saveOption() {
     String optionValue = _optionController.text.trim();
     String drivername = _drivername.text.trim();

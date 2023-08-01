@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 // import 'package:flutter_sms/flutter_sms.dart';
 import 'package:outdoor_admin/page/Iteanary/itenary.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -8,7 +9,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:twilio_flutter/twilio_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
-
 
 class Pax extends StatefulWidget {
   const Pax({Key? key}) : super(key: key);
@@ -23,13 +23,13 @@ class _PaxState extends State<Pax> {
   late TextEditingController _groupLeadContact;
   late TextEditingController _groupLeadname;
   String? fetchedFieldName;
+
   // //late TwilioFlutter twilioFlutter;
   // TwilioFlutter twilioFlutter = TwilioFlutter(
   // accountSid : 'AC475ab9b4d2f308d0fce82dc172cd2e98', // replace *** with Account SID
   // authToken : 'acbc742766a26762be167b87c94fc61f',  // replace xxx with Auth Token
   // twilioNumber : '+14155238886'  // replace .... with Twilio Number
   // );
-
 
   @override
   void initState() {
@@ -48,30 +48,32 @@ class _PaxState extends State<Pax> {
         });
       });
     });
-
   }
 
   Future<void> fetchComapnyname() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String userId = user.uid;
-      DocumentSnapshot<Map<String, dynamic>> snapshot =
-      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(userId)
+          .get();
 
       if (snapshot.exists) {
         String? phone = snapshot.data()?['phone'] as String?;
         if (phone != null) {
           QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await FirebaseFirestore.instance.collection('number').get();
+              await FirebaseFirestore.instance.collection('number').get();
 
           if (querySnapshot.docs.isNotEmpty) {
             for (QueryDocumentSnapshot<Map<String, dynamic>> document
-            in querySnapshot.docs) {
+                in querySnapshot.docs) {
               List<dynamic> phoneArray = document.data()['phone'];
               for (int i = 0; i < phoneArray.length; i++) {
                 if (phoneArray[i] is Map<String, dynamic>) {
                   Map<String, dynamic> map =
-                  Map<String, dynamic>.from(phoneArray[i]);
+                      Map<String, dynamic>.from(phoneArray[i]);
                   if (map.containsValue(phone)) {
                     fetchedFieldName = map.keys.first;
                     break;
@@ -89,72 +91,49 @@ class _PaxState extends State<Pax> {
   }
 
   Future<String> generateTravelerId() async {
-    // Generate a unique traveler ID based on the numeric IDs stored in Firestore
-    // You can customize this method according to your needs
-
-    // Example: Get the latest traveler document from Firestore
-    CollectionReference travelersCollection =
-    FirebaseFirestore.instance.collection('travelers');
-    QuerySnapshot querySnapshot = await travelersCollection
-        .orderBy('numericId', descending: true)
-        .limit(1)
-        .get();
+    CollectionReference travelersCollection = FirebaseFirestore.instance.collection('travelers');
+    QuerySnapshot querySnapshot = await travelersCollection.orderBy('numericId', descending: true).limit(1).get();
 
     int latestNumericId = 0;
-
     if (querySnapshot.docs.isNotEmpty) {
       latestNumericId = querySnapshot.docs.first.get('numericId') as int;
     }
-
-    // Increment the latest numeric ID by 1 to generate a new traveler ID
     int newNumericId = latestNumericId + 1;
-
-    return '$fetchedFieldName'+ '2023$newNumericId';
-
-    // Return the generated traveler ID
+    return 'T2023$newNumericId';
   }
-  Future<void> saveTravelerIdToFirestore(String travelerId, String groupLeadContact) async {
-    print("trvid: $travelerId" );
-    String phoneValue = groupLeadContact;
-    CollectionReference travelersCollection =
-    FirebaseFirestore.instance.collection('travelers');
 
-    int substringStartIndex = 1;
+  Future<void> saveTravelerIdToFirestore(String travelerId, String groupLeadContact) async {
+    String phoneValue = groupLeadContact;
+    CollectionReference travelersCollection = FirebaseFirestore.instance.collection('travelers');
+
+    int substringStartIndex = 7;
     int travelerIdLength = travelerId.length;
 
-    // Check if the substring start index is within the bounds of the travelerId string
     if (substringStartIndex < travelerIdLength) {
       String numericIdString = travelerId.substring(substringStartIndex);
       int numericId = int.parse(numericIdString);
 
-      print("trvid: $travelerId" );
-      print("trvid: $numericId" );
-      // Create a new document with the generated traveler ID
-      await travelersCollection.add({
-        'numericId': numericId,
-        // Add other fields as per your requirements
-      });
+      QuerySnapshot snapshot = await travelersCollection.where('numericId', isEqualTo: numericId).get();
 
+      if (snapshot.docs.isEmpty) {
+        await travelersCollection.add({
+          'numericId': numericId,
+          // Add other fields as per your requirements
+        });
+      } else {
+        print('Document already exists with numericId: $numericId');
+      }
     } else {
       print('Substring start index is out of range for travelerId: $travelerId');
     }
 
-
-    FirebaseFirestore.instance
-        .collection('number')
-        .doc('Traveller')
-        .update({
-      'phone': FieldValue.arrayUnion([
-        {'$fetchedFieldName':phoneValue}
-      ])
-    });
-    FirebaseFirestore.instance
-        .collection('number')
-        .doc('Traveller')
-        .update({
+    FirebaseFirestore.instance.collection('number').doc('Traveller').update({
+      'phone': FieldValue.arrayUnion([phoneValue]),
       'num': FieldValue.arrayUnion([phoneValue])
     });
   }
+
+
   @override
   Widget build(BuildContext context) {
     const List<String> list1 = <String>['5 Seater', '7 Seater'];
@@ -195,7 +174,6 @@ class _PaxState extends State<Pax> {
                     ListTile(
                       leading: Icon(Icons.numbers, color: Colors.red),
                       title: TextField(
-
                         controller: _travellerid,
                         enabled: false,
                         decoration: InputDecoration(
@@ -231,7 +209,7 @@ class _PaxState extends State<Pax> {
                           ),
                         ),
                       ),
-                     ),
+                    ),
                     SizedBox(height: 50),
                     Container(
                       width: 150,
@@ -242,32 +220,35 @@ class _PaxState extends State<Pax> {
                           String groupLeadContact = _groupLeadContact.text;
                           String groupLeadname = _groupLeadname.text;
 
-                          await saveTravelerIdToFirestore(travelerId,groupLeadContact);
+                          await saveTravelerIdToFirestore(
+                              travelerId, groupLeadContact);
                           // Send WhatsApp message
                           // String phoneNumber = groupLeadContact;
                           // String message = "Your trip with traveler ID: $travelerId has been created.";
                           //  sendSMSMessage(phoneNumber, message);
-                       //   sendWhatsAppMessage(phoneNumber, message);
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          //   sendWhatsAppMessage(phoneNumber, message);
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
                             content: Text('Save Itenary Information>>'),
-                          )
-                          );
+                          ));
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => Itenary(
-                                pax: pax,
-                                travellerid: travelerId,
-                                groupLeadContact: groupLeadContact,
-                                groupLeadname: groupLeadname
-                              ),
+                                  pax: pax,
+                                  travellerid: travelerId,
+                                  groupLeadContact: groupLeadContact,
+                                  groupLeadname: groupLeadname),
                             ),
                           );
                         },
                         child: Row(
                           children: [
                             Text("Proceed"),
-                            Icon(Icons.arrow_forward_ios_outlined,color: Colors.grey,)
+                            Icon(
+                              Icons.arrow_forward_ios_outlined,
+                              color: Colors.grey,
+                            )
                           ],
                         ),
                       ),

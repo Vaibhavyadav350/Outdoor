@@ -16,7 +16,7 @@ class _StayManagerState extends State<StayManager> {
 
   Future<void> _retrieveData(String phone) async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('SpitiStays')
+        .collection('StaysInfo')
         .where('phone', isEqualTo: phone)
         .get();
 
@@ -46,12 +46,6 @@ class _StayManagerState extends State<StayManager> {
                 controller: _phoneController,
                 decoration: InputDecoration(
                   labelText: 'Enter Phone Number',
-                ),
-              ),
-              TextField(
-                controller: _otp,
-                decoration: InputDecoration(
-                  labelText: 'OTP',
                 ),
               ),
               SizedBox(height: 16.0),

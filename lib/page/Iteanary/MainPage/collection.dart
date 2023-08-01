@@ -9,6 +9,7 @@ import '../../../Trips/trip_grid.dart';
 import '../../../routes.dart';
 import '../../All/alldrivers.dart';
 import '../../All/allstays.dart';
+import '../../edit/edit.dart';
 import '../newcar.dart';
 import 'ongoingItenary.dart';
 
@@ -139,6 +140,18 @@ class _CollectionsState extends State<Collections> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => AllVendorPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.edit,
+                color: Colors.redAccent,
+              ),
+              title: const Text('Edit'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => EditScreen()),
                 );
               },
             ),

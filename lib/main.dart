@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
 import 'package:outdoor_admin/page/Stays/StayManager.dart';
+import 'package:outdoor_admin/page/edit/edit.dart';
 import 'package:outdoor_admin/phone.dart';
 import 'package:outdoor_admin/services/adminlogin.dart';
 import 'package:outdoor_admin/page/Home/choose.dart';

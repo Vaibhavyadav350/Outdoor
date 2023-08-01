@@ -7,6 +7,7 @@ import 'package:outdoor_admin/noe_box.dart';
 import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
 import 'package:outdoor_admin/page/Iteanary/pax.dart';
 import 'package:outdoor_admin/page/Iteanary/selectcar.dart';
+import 'package:outdoor_admin/page/edit/edit.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../routes.dart';
