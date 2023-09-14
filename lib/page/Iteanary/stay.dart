@@ -1,155 +1,88 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AddStays extends StatefulWidget {
+import '../../newpage/name&company.dart';
+
+class AddPropertyPage extends StatefulWidget {
   @override
-  _AddStaysState createState() => _AddStaysState();
+  _AddPropertyPageState createState() => _AddPropertyPageState();
 }
 
-class _AddStaysState extends State<AddStays> {
-  final TextEditingController _optionController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _pluscode = TextEditingController();
-  String? fetchedFieldName;
+class _AddPropertyPageState extends State<AddPropertyPage> {
+  final _managername = TextEditingController();
+  final _property = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _companyController = TextEditingController();
+  final _phoneController_user = TextEditingController();
+  final dataFetcher = DataFetcher();
 
-  @override
-  void initState() {
-    super.initState();
-    fetchComapnyname(); // Fetch the field name when the widget is initialized
-  }
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  void _saveOption() async {
+    final data = await dataFetcher.fetchCompanyNameAndPhone();
 
-  // Fetch the field name from Firebase
-  Future<void> fetchComapnyname() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      String userId = user.uid;
-      DocumentSnapshot<Map<String, dynamic>> snapshot =
-      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    setState(() {
+      _companyController.text = data['company'] ?? '';
+      _phoneController_user.text = data['phone'] ?? '';
+    });
 
-      if (snapshot.exists) {
-        String? phone = snapshot.data()?['phone'] as String?;
-        if (phone != null) {
-          QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await FirebaseFirestore.instance.collection('number').get();
-
-          if (querySnapshot.docs.isNotEmpty) {
-            for (QueryDocumentSnapshot<Map<String, dynamic>> document
-            in querySnapshot.docs) {
-              List<dynamic> phoneArray = document.data()['phone'];
-              for (int i = 0; i < phoneArray.length; i++) {
-                if (phoneArray[i] is Map<String, dynamic>) {
-                  Map<String, dynamic> map =
-                  Map<String, dynamic>.from(phoneArray[i]);
-                  if (map.containsValue(phone)) {
-                    fetchedFieldName = map.keys.first;
-                    break;
-                  }
-                } else if (phoneArray[i] == phone) {
-                  fetchedFieldName = 'phone';
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-
-  void _saveOption() {
-    String optionValue = _optionController.text.trim();
-    String phoneValue = _phoneController.text.trim();
-    String locationValue = _locationController.text.trim();
-    String pluscode = _pluscode.text.trim();
-
-    if (optionValue.isNotEmpty && phoneValue.isNotEmpty && locationValue.isNotEmpty) {
-      FirebaseFirestore.instance
-          .collection('Stays')
-          .doc(locationValue)
-          .set({
-        'company':fetchedFieldName,
-        'name': optionValue,
-        'phone': phoneValue,
-        'location': locationValue,
-          'pluscode':pluscode
-          })
-          .then((value) => print('Option added'))
-          .catchError((error) => print('Failed to add option: $error'));
-      FirebaseFirestore.instance
-
-          .collection('StaysInfo').doc(optionValue).set(
-          {'phone': phoneValue,'company':fetchedFieldName});
-
-
-      // FirebaseFirestore.instance
-      //     .collection('Stays')
-      //     .doc(locationValue)
-      //     .set({
-      //   'name': optionValue,
-      //   'phone': phoneValue,
-      //   'location': locationValue,
-      //   'pluscode':pluscode,
-      //   'company':fetchedFieldName,
-      // }
-      // )
-      //
-      //
-      //
-      //     .then((value) => print('Option added'))
-      //     .catchError((error) => print('Failed to add option: $error'));
-
-      FirebaseFirestore.instance
-          .collection('StaysInfo')
-          .doc('StaysInfo')
-          .collection('StaysInfo').doc(optionValue).set(
-          {'phone': phoneValue,'company':fetchedFieldName,});
-
-
-      FirebaseFirestore.instance
-          .collection('number')
-          .doc('StaysInfo')
-          .update({
-        'phone': FieldValue.arrayUnion([
-          {'$fetchedFieldName':phoneValue}
-        ])
+    try {
+      await _firestore.collection('Stays').add({
+        'managerName': _managername.text,
+        'propertyName': _property.text,
+        'phoneNumber': _phoneController.text,
+        'location': _locationController.text,
+        'onboardedby': _phoneController_user.text,
+        'company': _companyController.text,
       });
-      FirebaseFirestore.instance
-          .collection('number')
-          .doc('StaysInfo')
-          .update({
-        'num': FieldValue.arrayUnion([phoneValue])
-      });
-      _optionController.clear();
-      _phoneController.clear();
-      _locationController.clear();
-      _pluscode.clear();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved Successfully!')),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save: $error')),
+      );
     }
+
+    // Clearing the fields after saving.
+    _managername.clear();
+    _property.clear();
+    _phoneController.clear();
+    _locationController.clear();
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Add Stays'),
+        title: Text('Add Property'),
       ),
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32,vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.asset("assets/images/stays.jpg",
-                fit: BoxFit.cover,height: 200,),
+              Image.asset(
+                "assets/images/stays.jpg",
+                fit: BoxFit.cover,
+                height: 200,
+              ),
               TextField(
-                controller: _optionController,
+                controller: _managername,
                 decoration: InputDecoration(
-                  labelText: 'Enter Stays',
+                  labelText: 'Stay Manager Name',
+                ),
+              ),
+              TextField(
+                controller: _property,
+                decoration: InputDecoration(
+                  labelText: 'Enter Property Name',
                 ),
               ),
               SizedBox(height: 16.0),
@@ -165,13 +98,6 @@ class _AddStaysState extends State<AddStays> {
                 controller: _locationController,
                 decoration: InputDecoration(
                   labelText: 'Enter Location',
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _pluscode,
-                decoration: InputDecoration(
-                  labelText: 'Enter Google PlusCode',
                 ),
               ),
               SizedBox(height: 16.0),

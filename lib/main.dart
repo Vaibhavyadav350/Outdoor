@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:outdoor_admin/newpage/st.dart';
 import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
+import 'package:outdoor_admin/page/Iteanary/pax.dart';
 import 'package:outdoor_admin/page/Stays/StayManager.dart';
 import 'package:outdoor_admin/page/edit/edit.dart';
 import 'package:outdoor_admin/phone.dart';
@@ -20,6 +22,11 @@ import 'package:outdoor_admin/routes.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'SplashScreen.dart';
+import 'newpage/addadmin.dart';
+import 'newpage/dr.dart';
+import 'newpage/navigateserchh.dart';
+import 'newpage/nenenenen.dart';
+import 'newpage/newwrppwer.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,14 +48,14 @@ class MyApp extends StatelessWidget {
           primaryColor: Colors.indigoAccent,
           fontFamily: 'Roboto',
         ),
-        home: SplashScreen(),
+        home:UserInfoPage(),
       //  initialRoute: "/wrapper",
         routes: {
           MyRoutes.loginroute: (context) => Login(),
           MyRoutes.vendors: (context) => NewVendors(),
         //  MyRoutes.itenary:(context) => Itenary(),
           MyRoutes.wrapper:(context)=> Wrapper(),
-          MyRoutes.addStays:(context)=> AddStays(),
+          MyRoutes.addStays:(context)=> AddPropertyPage(),
           MyRoutes.travellers:(context)=> TravellerData(),
           MyRoutes.allitenary:(context) => PreviousItenary(),
           MyRoutes.adminLogin:(context) => AdminLogin(),

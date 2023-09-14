@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:outdoor_admin/newpage/nenenenen.dart';
+
 
 // import 'package:flutter_sms/flutter_sms.dart';
 import 'package:outdoor_admin/page/Iteanary/itenary.dart';
@@ -106,7 +108,7 @@ class _PaxState extends State<Pax> {
     String phoneValue = groupLeadContact;
     CollectionReference travelersCollection = FirebaseFirestore.instance.collection('travelers');
 
-    int substringStartIndex = 7;
+    int substringStartIndex = 5;
     int travelerIdLength = travelerId.length;
 
     if (substringStartIndex < travelerIdLength) {
@@ -234,11 +236,7 @@ class _PaxState extends State<Pax> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Itenary(
-                                  pax: pax,
-                                  travellerid: travelerId,
-                                  groupLeadContact: groupLeadContact,
-                                  groupLeadname: groupLeadname),
+                              builder: (context) => NewItenaryPage(),
                             ),
                           );
                         },

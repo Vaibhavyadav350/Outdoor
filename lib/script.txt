@@ -1,0 +1,35 @@
+Offline Data Stored
+Multi Language Support
+>Tour Opereator
+Add Stay(invite),
+Add Vendor(invite),
+Add Itenary(
+Pickup And Drop(Text Field),
+Meal Plan(DropDown)// option
++ - room no. day wise , no. of pax/2 ,
+type of room // Standard/Delux/Luxury/Suit/Villa/Cottage
+)
+
+Manage Trip
+Trip Delete
+Trip Cancel
+Postpone/Prepone Date
+Change Stay
+Change Driver/Car
+
+
+Stay Manager
+Manage Profile- Name Contact Photo
+Add Property(Multiple Property)
+Property Name
+B2B rate(Acounting)
+D2C rate
+Manage Property
+No. Of rooms
+Inventory
+Location+State
+Accept/Reject/Remark.
+
+no. of rooms
+
+https://www.ezeetechnosys.com/

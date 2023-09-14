@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:outdoor_admin/noe_box.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // import 'package:flutter_sms/flutter_sms.dart';
 import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
@@ -115,6 +117,38 @@ class _ItenaryState extends State<Itenary> {
           }
         }
       }
+    }
+  }
+
+  void _sendFCMNotification(String fcmToken, String title, String body) async {
+    String serverToken = 'YOUR_SERVER_KEY';
+    var response = await http.post(
+      Uri.parse('https://fcm.googleapis.com/fcm/send'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'key=$serverToken',
+      },
+      body: jsonEncode(
+        <String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': body,
+            'title': title
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done'
+          },
+          'to': fcmToken,
+        },
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      print('FCM request sent successfully');
+    } else {
+      print('FCM request failed: ${response.statusCode}');
     }
   }
 
@@ -621,3 +655,5 @@ class _ItenaryState extends State<Itenary> {
     );
   }
 }
+
+//DEfault Value for DRiver
