@@ -28,7 +28,7 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     });
 
     try {
-      await _firestore.collection('Stays').add({
+      await _firestore.collection('Stays').doc(_property.text).set({
         'managerName': _managername.text,
         'propertyName': _property.text,
         'phoneNumber': _phoneController.text,
@@ -36,7 +36,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         'onboardedby': _phoneController_user.text,
         'company': _companyController.text,
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Saved Successfully!')),
       );

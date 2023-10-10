@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../newpage/name&company.dart';
 
 class NewVendors extends StatefulWidget {
   @override
@@ -8,150 +9,71 @@ class NewVendors extends StatefulWidget {
 }
 
 class _NewVendorsState extends State<NewVendors> {
-  final TextEditingController _optionController = TextEditingController();
-  final TextEditingController _drivername =TextEditingController();
-  final TextEditingController _driverphonenumber =TextEditingController();
-  final TextEditingController _driverdrivingLicense =TextEditingController();
-  //final TextEditingController _driver =TextEditingController();
-  String? fetchedFieldName; // Variable to store the fetched field name
+  final _vendorname = TextEditingController();
+  final _drivername = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _license_number = TextEditingController();
+  final _companyController = TextEditingController();
+  final _phoneController_user = TextEditingController();
+  final dataFetcher = DataFetcher();
 
-  @override
-  void initState() {
-    super.initState();
-    fetchComapnyname(); // Fetch the field name when the widget is initialized
-  }
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Fetch the field name from Firebase
-  Future<void> fetchComapnyname() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      String userId = user.uid;
-      DocumentSnapshot<Map<String, dynamic>> snapshot =
-      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+  void _saveOption() async {
+    final data = await dataFetcher.fetchCompanyNameAndPhone();
 
-      if (snapshot.exists) {
-        String? phone = snapshot.data()?['phone'] as String?;
-        if (phone != null) {
-          QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await FirebaseFirestore.instance.collection('number').get();
+    setState(() {
+      _companyController.text = data['company'] ?? '';
+      _phoneController_user.text = data['phone'] ?? '';
+    });
 
-          if (querySnapshot.docs.isNotEmpty) {
-            for (QueryDocumentSnapshot<Map<String, dynamic>> document
-            in querySnapshot.docs) {
-              List<dynamic> phoneArray = document.data()['phone'];
-              for (int i = 0; i < phoneArray.length; i++) {
-                if (phoneArray[i] is Map<String, dynamic>) {
-                  Map<String, dynamic> map =
-                  Map<String, dynamic>.from(phoneArray[i]);
-                  if (map.containsValue(phone)) {
-                    fetchedFieldName = map.keys.first;
-                    break;
-                  }
-                } else if (phoneArray[i] == phone) {
-                  fetchedFieldName = 'phone';
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  void _saveOption() {
-    String optionValue = _optionController.text.trim();
-    String drivername = _drivername.text.trim();
-    String driverphonenumber = _driverphonenumber.text.trim();
-    String driverLicense = _driverdrivingLicense.text.trim();
-    if (optionValue.isNotEmpty) {
-      FirebaseFirestore.instance
-          // .collection(fetchedFieldName!).doc('Vendors')
-          .collection('vendors')
-          .doc(optionValue)
-          .collection(optionValue as String)
-          .add({'drivername': drivername,
-        'driverphone':driverphonenumber,'driverLicense':driverLicense,'company':fetchedFieldName,})
-          .then((value) => print('Option added'))
-          .catchError((error) => print('Failed to add option: $error'
-      )
+    try {
+      await _firestore.collection('Driver').doc(_drivername.text).set({
+        'vendor': _vendorname.text,
+        'driver': _drivername.text,
+        'phone': _phoneController.text,
+        'license': _license_number.text,
+        'onboardedby': _phoneController_user.text,
+        'company': _companyController.text,
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved Successfully!')),
       );
-      FirebaseFirestore.instance
-          // .collection(fetchedFieldName!).doc('Vendors')
-          .collection('vendors').doc(optionValue)
-          .set({'optionValue':optionValue});
-      FirebaseFirestore.instance
-          // .collection(fetchedFieldName!)
-          // .doc('DriverInfo')
-          .collection('DriverInfo').doc(drivername).set(
-          {'phone': driverphonenumber,'company':fetchedFieldName,});
-      FirebaseFirestore.instance
-          .collection('number')
-          .doc('DriverInfo')
-          .update({
-        'phone': FieldValue.arrayUnion([
-          {'$fetchedFieldName':driverphonenumber}
-        ])
-      });
-      FirebaseFirestore.instance
-          .collection('number')
-          .doc('DriverInfo')
-          .update({
-        'num': FieldValue.arrayUnion([driverphonenumber])
-      });
-
-
-
-
-
-      FirebaseFirestore.instance
-          .collection('Driver')
-          .doc(optionValue)
-          .collection(optionValue as String)
-          .add({'drivername': drivername,
-        'driverphone':driverphonenumber,'driverLicense':driverLicense})
-          .then((value) => print('Option added'))
-          .catchError((error) => print('Failed to add option: $error'
-      )
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save: $error')),
       );
-      FirebaseFirestore.instance
-          .collection('number')
-          .doc('DriverInfo')
-          .update({
-        'phone': FieldValue.arrayUnion([
-          {'$fetchedFieldName':driverphonenumber}
-        ])
-      });
-      FirebaseFirestore.instance
-          .collection('number')
-          .doc('DriverInfo')
-          .update({
-        'num': FieldValue.arrayUnion([driverphonenumber])
-      });
-      _optionController.clear();
-      _drivername.clear();
-      _driverdrivingLicense.clear();
-      _driverphonenumber.clear();
     }
+
+    // Clearing the fields after saving.
+    _vendorname.clear();
+    _drivername.clear();
+    _phoneController.clear();
+    _license_number.clear();
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Add Drivers'),
+        title: Text('Add Driver'),
       ),
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32,vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.asset("assets/images/vendors.jpg",
-                fit: BoxFit.cover,height: 200,),
+              Image.asset(
+                "assets/images/driver.jpg",
+                fit: BoxFit.cover,
+                height: 200,
+              ),
               TextField(
-                controller: _optionController,
+                controller: _vendorname,
                 decoration: InputDecoration(
                   labelText: 'Vendor Name',
                 ),
@@ -162,20 +84,21 @@ class _NewVendorsState extends State<NewVendors> {
                   labelText: 'Driver Name',
                 ),
               ),
+              SizedBox(height: 16.0),
               TextField(
                 keyboardType: TextInputType.number,
-                controller: _driverphonenumber,
+                controller: _phoneController,
                 decoration: InputDecoration(
-                  labelText: 'Driver PhoneNumber',
+                  labelText: 'Enter Phone Number',
                 ),
               ),
+              SizedBox(height: 16.0),
               TextField(
-                controller: _driverdrivingLicense,
+                controller: _license_number,
                 decoration: InputDecoration(
-                  labelText: 'Driver License',
+                  labelText: 'Enter License',
                 ),
               ),
-
               SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: _saveOption,

@@ -10,6 +10,7 @@ import '../../../routes.dart';
 import '../../All/alldrivers.dart';
 import '../../All/allstays.dart';
 import '../../edit/edit.dart';
+import '../itenary.dart';
 import '../newcar.dart';
 import 'ongoingItenary.dart';
 
@@ -96,7 +97,7 @@ class _CollectionsState extends State<Collections> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                      builder: (context) => Pax()),
+                      builder: (context) => NewItenaryPage()),
                 );
               },
             ),

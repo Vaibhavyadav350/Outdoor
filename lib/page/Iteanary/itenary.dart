@@ -1,659 +1,589 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:outdoor_admin/noe_box.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-// import 'package:flutter_sms/flutter_sms.dart';
-import 'package:outdoor_admin/page/Iteanary/MainPage/collection.dart';
-import 'package:outdoor_admin/page/Iteanary/pax.dart';
-import 'package:outdoor_admin/page/Iteanary/selectcar.dart';
-import 'package:outdoor_admin/page/edit/edit.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../routes.dart';
-import '../All/allstays.dart';
-//import '../../services/auth.dart';
-
-class Itenary extends StatefulWidget {
-  late String pax;
-  late String travellerid;
-  late String groupLeadContact;
-  late String groupLeadname;
-
-  Itenary(
-      {Key? key,
-      required this.pax,
-      required this.travellerid,
-      required this.groupLeadContact,
-      required this.groupLeadname
-      })
-      : super(key: key);
-
-  @override
-  _ItenaryState createState() =>
-      _ItenaryState(pax, travellerid, groupLeadContact,groupLeadname);
+class FormFields {
+  String? _selectedLocation;
+  String? _selectedDriver;
+  String? _driverLicense;
+  String? _driverPhone;
+  String? _hotelPhone;
+  String? _hotelpluscode;
+  String? _propertyManager;
 }
 
-class _ItenaryState extends State<Itenary> {
-  late String collectionName;
-  late CollectionReference stayscollection;
-  DateTime initialDate = DateTime.now();
-  DateTime finaldate = DateTime.now();
-  late int numDropdowns = 0;
-  late int numDropdownsvendor = 0;
-  List<DateTime> dropdownDates = [];
-  List<Map<String, dynamic>> dropdownValues = [];
-  late CollectionReference dropdownsCollection;
-  Map<int, dynamic> selectedValues = {};
-  late CollectionReference userCollection;
-  final _collectionNameController = TextEditingController();
-  late TextEditingController phonenumbercontroller = TextEditingController();
-  late CollectionReference vendorDropdownCollection;
-  late DocumentReference driveDropdownCollection;
-  late String selectedVendorValue = "Select Vendor";
-  List<Map<String, dynamic>> selectedDriverValue = [];
-  late String dropdownvalue = 'Vendor 1';
-  late String? fetchedFieldName; // Variable to store the fetched field name
+class NewItenaryPage extends StatefulWidget {
+  NewItenaryPage({
+    Key? key,
+  });
 
-  String travellerid;
-  String pax;
-  String groupLeadContact;
-  String groupLeadname;
+  @override
+  State<NewItenaryPage> createState() => _NewItenaryPageState();
+}
 
-  _ItenaryState(this.pax, this.travellerid, this.groupLeadContact,this.groupLeadname);
+class _NewItenaryPageState extends State<NewItenaryPage> {
+  String? _selectedVendor;
+  final _formKey = GlobalKey<FormState>();
+  DateTime initialDateofTrip = DateTime.now();
+  DateTime finalDateofTrip = DateTime.now();
+  int numberofLocations = 0;
+  int numberofDrivers = 1;
+  final _phoneController = TextEditingController();
+  List<DocumentSnapshot> trips = [];
+  String? fetchedFieldName;
+  TextEditingController _pax = TextEditingController();
+  TextEditingController _travellerid = TextEditingController();
+  TextEditingController _groupLeadContact = TextEditingController();
+  TextEditingController _groupLeadname = TextEditingController();
+  TextEditingController pickupLocation = TextEditingController();
+  TextEditingController dropLocation = TextEditingController();
+
+  String mealplan = 'AMERICAN PLAN (AP)';
+  var meals = [
+    // Programming Languages
+    'AMERICAN PLAN (AP)',
+    'MODIFIED AMERICAN PLAN',
+    'CONTINENTAL PLAN',
+    'EUROPEAN PLAN'
+  ];
+
+  // List of items in our dropdown menu
+  var items = [1, 2, 3, 4, 5, 6];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<String> locations = [];
+  List<String> vendors = [];
+  List<String> vendortypes = [];
+  List<String> vehicleTypes = [];
+  String? _selectedDriver;
+  List<FormFields> _formsListLocations = [];
+  List<FormFields> _formsListDrivers = [];
 
   @override
   void initState() {
     super.initState();
-    fetchComapnyname().then((_) {
-      dropdownsCollection = FirebaseFirestore.instance
-
-          .collection('Stays');
-      vendorDropdownCollection = FirebaseFirestore.instance
-
-          .collection('vendors');
-      userCollection = FirebaseFirestore.instance
-
-          .collection('Users');
+    fetchCompanyNameAndPhone();
+    fetchLocations();
+    for (int i = 0; i < numberofDrivers; i++) {
+      _formsListDrivers.add(FormFields());
+    }
+    generateTravelerId().then((generatedId) {
+      setState(() {
+        _travellerid.text = generatedId;
+      });
     });
   }
 
-  Future<void> fetchComapnyname() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      String userId = user.uid;
-      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
-          .instance
-          .collection('users')
-          .doc(userId)
+  Future<String> generateTravelerId() async {
+    CollectionReference travelersCollection =
+    FirebaseFirestore.instance.collection('travelers');
+    QuerySnapshot querySnapshot = await travelersCollection
+        .orderBy('numericId', descending: true)
+        .limit(1)
+        .get();
+
+    int latestNumericId = 0;
+    if (querySnapshot.docs.isNotEmpty) {
+      latestNumericId = querySnapshot.docs.first.get('numericId') as int;
+    }
+    int newNumericId = latestNumericId + 1;
+    return 'T2023$newNumericId';
+  }
+
+  Future<void> saveTravelerIdToFirestore(
+      String travelerId, String groupLeadContact) async {
+    String phoneValue = groupLeadContact;
+    CollectionReference travelersCollection =
+    FirebaseFirestore.instance.collection('travelers');
+
+    int substringStartIndex = 5;
+    int travelerIdLength = travelerId.length;
+
+    if (substringStartIndex < travelerIdLength) {
+      String numericIdString = travelerId.substring(substringStartIndex);
+      int numericId = int.parse(numericIdString);
+
+      QuerySnapshot snapshot = await travelersCollection
+          .where('numericId', isEqualTo: numericId)
           .get();
 
-      if (snapshot.exists) {
-        String? phone = snapshot.data()?['phone'] as String?;
-        if (phone != null) {
-          QuerySnapshot<Map<String, dynamic>> querySnapshot =
-              await FirebaseFirestore.instance.collection('number').get();
+      if (snapshot.docs.isEmpty) {
+        await travelersCollection.add({
+          'numericId': numericId,
+          // Add other fields as per your requirements
+        });
+      } else {
+        print('Document already exists with numericId: $numericId');
+      }
+    } else {
+      print(
+          'Substring start index is out of range for travelerId: $travelerId');
+    }
 
-          if (querySnapshot.docs.isNotEmpty) {
-            for (QueryDocumentSnapshot<Map<String, dynamic>> document
-                in querySnapshot.docs) {
-              List<dynamic> phoneArray = document.data()['phone'];
-              for (int i = 0; i < phoneArray.length; i++) {
-                if (phoneArray[i] is Map<String, dynamic>) {
-                  Map<String, dynamic> map =
-                      Map<String, dynamic>.from(phoneArray[i]);
-                  if (map.containsValue(phone)) {
-                    fetchedFieldName = map.keys.first;
-                    break;
-                  }
-                } else if (phoneArray[i] == phone) {
-                  fetchedFieldName = 'phone';
-                  break;
+    FirebaseFirestore.instance.collection('number').doc('Traveller').update({
+      'phone': FieldValue.arrayUnion([phoneValue]),
+      'num': FieldValue.arrayUnion([phoneValue])
+    });
+  }
+
+  Future<void> fetchVehicleTypes(String vendorName) async {
+    vehicleTypes.clear();
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('Driver')
+          .where('vendor', isEqualTo: vendorName)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        var vehicleType = doc['driver'];
+        if (vehicleType != null && !vehicleTypes.contains(vehicleType)) {
+          vehicleTypes.add(vehicleType);
+        }
+      }
+
+      setState(() {}); // Refresh the UI after loading the vehicle types
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> fetchLocations() async {
+    try {
+      QuerySnapshot stayssnapshot = await _firestore.collection('Stays').get();
+
+      for (var doc in stayssnapshot.docs) {
+        var locationName = doc['propertyName'];
+        if (locationName != null) {
+          locations.add(locationName);
+        }
+      }
+      QuerySnapshot vendorsnapshot =
+      await _firestore.collection('Driver').get();
+
+      for (var doc in vendorsnapshot.docs) {
+        var locationName = doc['vendor'];
+        if (locationName != null) {
+          vendors.add(locationName);
+        }
+      }
+
+      setState(() {}); // Refresh the UI after loading the locations
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void addForm() {
+    _formsListLocations.add(FormFields());
+    setState(() {});
+  }
+
+  void deleteForm(int index) {
+    _formsListLocations.removeAt(index);
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Booking Page"),
+      ),
+      body: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            ListTile(
+              leading: Icon(Icons.group_add, color: Colors.green),
+              title: TextField(
+                keyboardType: TextInputType.number,
+                controller: _pax,
+                decoration: InputDecoration(
+                  hintText: 'PAX',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.numbers, color: Colors.red),
+              title: TextField(
+                controller: _travellerid,
+                enabled: false,
+                decoration: InputDecoration(
+                  hintText: 'Traveller ID',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.phone, color: Colors.blue),
+              title: TextField(
+                keyboardType: TextInputType.number,
+                controller: _groupLeadContact,
+                decoration: InputDecoration(
+                  hintText: 'Group Contact Lead',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person, color: Colors.blue),
+              title: TextField(
+                controller: _groupLeadname,
+                decoration: InputDecoration(
+                  hintText: 'Group Lead Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person, color: Colors.blue),
+              title: TextField(
+                controller: pickupLocation,
+                decoration: InputDecoration(
+                  hintText: 'Enter Pickup Location',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person, color: Colors.blue),
+              title: TextField(
+                controller: dropLocation,
+                decoration: InputDecoration(
+                  hintText: 'Enter Drop Location',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  _showDateRangePicker(context);
+                },
+                child: Text("Pick date")),
+            SizedBox(height: 20),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: numberofLocations,
+              itemBuilder: (context, index) {
+                return locationform(index);
+              },
+            ),
+            DropdownButton<String>(
+              // Initial Value
+              value: mealplan,
+
+              // Down Arrow Icon
+              icon: const Icon(Icons.keyboard_arrow_down),
+
+              // Array list of items
+              items: meals.map((String item) {
+                return DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(item),
+                );
+              }).toList(),
+
+              // After selecting the desired option, it will change button value to selected value
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    mealplan = newValue;
+                  });
                 }
-              }
-            }
+              },
+            ),
+            DropdownButton(
+              // Initial Value
+              value: numberofDrivers,
+
+              // Down Arrow Icon
+              icon: const Icon(Icons.keyboard_arrow_down),
+
+              // Array list of items
+              items: items.map((int items) {
+                return DropdownMenuItem(
+                  value: items,
+                  child: Text("$items"),
+                );
+              }).toList(),
+              // After selecting the desired option,it will
+              // change button value to selected value
+              onChanged: (int? newValue) {
+                setState(() {
+                  numberofDrivers = newValue!;
+                  while (_formsListDrivers.length < numberofDrivers) {
+                    _formsListDrivers.add(FormFields());
+                  }
+                  while (_formsListDrivers.length > numberofDrivers) {
+                    _formsListDrivers.removeLast();
+                  }
+                });
+              },
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Vendor"),
+                SizedBox(
+                  width: 40,
+                ),
+                DropdownButton<String>(
+                  value: _selectedVendor,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedVendor = newValue;
+                      _selectedDriver = null;
+                    });
+                    if (newValue != null) {
+                      fetchVehicleTypes(newValue);
+                    }
+                  },
+                  items: vendors.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: numberofDrivers,
+              itemBuilder: (context, index) {
+                return Driverform(index);
+              },
+            ),
+            ElevatedButton(
+              onPressed: saveToFirestore,
+              child: Text("Save"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget locationform(int index) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Day $index Hotel"),
+            SizedBox(
+              width: 40,
+            ),
+            DropdownButton<String>(
+              value: _formsListLocations[index]._selectedLocation,
+              onChanged: (String? newValue) async {
+                setState(() {
+                  _formsListLocations[index]._selectedLocation = newValue;
+                });
+                if (newValue != null) {
+                  // Fetch driver details
+                  DocumentSnapshot driverDoc =
+                  await _firestore.collection('Stays').doc(newValue).get();
+                  if (driverDoc.exists) {
+                    Map<String, dynamic> data =
+                    driverDoc.data()! as Map<String, dynamic>;
+
+                    _formsListLocations[index]._hotelPhone =
+                    data['phoneNumber'];
+                    _formsListLocations[index]._hotelpluscode =
+                    data['location'];
+                    _formsListLocations[index]._propertyManager =
+                    data['managerName'];
+                  }
+                }
+              },
+              items: locations.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget Driverform(int index) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Driver"),
+            SizedBox(
+              width: 40,
+            ),
+            DropdownButton<String>(
+              value: _formsListDrivers[index]._selectedDriver,
+              onChanged: (String? newValue) async {
+                setState(() {
+                  _formsListDrivers[index]._selectedDriver = newValue;
+                });
+                if (newValue != null) {
+                  // Fetch driver details
+                  DocumentSnapshot driverDoc =
+                  await _firestore.collection('Driver').doc(newValue).get();
+                  if (driverDoc.exists) {
+                    Map<String, dynamic> data =
+                    driverDoc.data()! as Map<String, dynamic>;
+                    print('Fetched Data: $data'); // Print fetched data
+                    _formsListDrivers[index]._driverLicense = data['license'];
+                    _formsListDrivers[index]._driverPhone = data['phone'];
+                  }
+                }
+              },
+              items: vehicleTypes.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
+  void saveToFirestore() async {
+    try {
+      // Create a reference to the collection where you want to store the data
+      CollectionReference itineraries = _firestore.collection('Itineraries');
+      saveTravelerIdToFirestore(_travellerid.text, _groupLeadContact.text);
+      // Create a map of the data you want to save
+      Map<String, dynamic> data = {
+        'pax': _pax.text,
+        'travellerid': _travellerid.text,
+        'groupLeadContact': _groupLeadContact.text,
+        'groupLeadname': _groupLeadname.text,
+        'initialDateofTrip': initialDateofTrip,
+        'finalDateofTrip': finalDateofTrip,
+        'mealplan': mealplan,
+        'locations': _formsListLocations
+            .map((f) => {
+          'PropertyName': f._selectedLocation,
+          'PropertyManager': f._propertyManager,
+          'Phonenumber': f._hotelPhone,
+          'MapLocation': f._hotelpluscode
+        })
+            .toList(),
+        'driversDetails': _formsListDrivers
+            .map((f) => {
+          'name': f._selectedDriver,
+          'license': f._driverLicense,
+          'phone': f._driverPhone
+        })
+            .toList(),
+        'vendor': _selectedVendor,
+        'company': fetchedFieldName
+      };
+      print(data);
+
+      // Save the data to Firestore
+      await itineraries.add(data);
+
+      // Optionally, show a success message or perform other actions after saving
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Saved Successfully!')));
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error occurred while saving!')));
+    }
+  }
+
+  //fuctions
+  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    if (args.value is PickerDateRange) {
+      DateTime? startDate = (args.value as PickerDateRange).startDate;
+      DateTime? endDate = (args.value as PickerDateRange).endDate;
+
+      if (startDate != null && endDate != null) {
+        setState(() {
+          initialDateofTrip = startDate;
+          finalDateofTrip = endDate;
+          numberofLocations =
+              finalDateofTrip.difference(initialDateofTrip).inDays;
+          // Ensure _formsListLocations is updated accordingly
+          while (_formsListLocations.length < numberofLocations) {
+            _formsListLocations.add(FormFields());
+          }
+          while (_formsListLocations.length > numberofLocations) {
+            _formsListLocations.removeLast();
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> fetchCompanyNameAndPhone() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null && user.phoneNumber != null) {
+      final userPhone = user.phoneNumber!.substring(3); // Removing country code
+
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('admin')
+          .doc('hello')
+          .get();
+
+      if (docSnapshot.exists) {
+        final dataMap = docSnapshot.data() as Map<String, dynamic>?;
+        final usersData = dataMap?['userstype'] as List<dynamic>? ?? [];
+
+        for (var userData in usersData) {
+          if (userData['phone'] == userPhone) {
+            fetchedFieldName = userData['company'] as String? ?? 'Unknown';
+            _phoneController.text = userData['phone'] as String? ?? 'Unknown';
+            setState(() {});
+            return;
           }
         }
       }
     }
   }
 
-  void _sendFCMNotification(String fcmToken, String title, String body) async {
-    String serverToken = 'YOUR_SERVER_KEY';
-    var response = await http.post(
-      Uri.parse('https://fcm.googleapis.com/fcm/send'),
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'key=$serverToken',
-      },
-      body: jsonEncode(
-        <String, dynamic>{
-          'notification': <String, dynamic>{
-            'body': body,
-            'title': title
-          },
-          'priority': 'high',
-          'data': <String, dynamic>{
-            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-            'id': '1',
-            'status': 'done'
-          },
-          'to': fcmToken,
-        },
-      ),
-    );
-
-    if (response.statusCode == 200) {
-      print('FCM request sent successfully');
-    } else {
-      print('FCM request failed: ${response.statusCode}');
-    }
-  }
-
-  void _generateDropdowns() {
-    numDropdowns = finaldate.difference(initialDate).inDays;
-    dropdownDates.clear();
-    dropdownValues.clear();
-    for (int i = 0; i < numDropdowns; i++) {
-      dropdownDates.add(initialDate.add(Duration(days: i)));
-      dropdownValues
-          .add({'dropdownValue': null, 'selectedDate': dropdownDates[i]});
-    }
-  }
-
-  void _generateDropdownsforvendor() {
-    dropdownDates.clear();
-    dropdownValues.clear();
-    for (int i = 0; i < numDropdownsvendor; i++) {
-      dropdownDates.add(initialDate.add(Duration(days: i)));
-      selectedDriverValue.add({'Driver': null});
-    }
-  }
-
-  void sendWhatsAppMessage(String phoneNumber, String message) async {
-    String url =
-        "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}";
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-  void _saveToFirestore() async {
-    numDropdowns = finaldate.difference(initialDate).inDays;
-    _collectionNameController.text = travellerid;
-    CollectionReference collectionRef = FirebaseFirestore.instance
-        .collection('Users')
-        .doc(_collectionNameController.text)
-        .collection(_collectionNameController.text);
-    CollectionReference collectionRefvendor = FirebaseFirestore.instance
-        .collection('Users')
-        .doc(_collectionNameController.text)
-        .collection('vendor');
-    FirebaseFirestore.instance
-        .collection('Users')
-        .doc(_collectionNameController.text)
-        .set({
-      'optionValue': _collectionNameController.text,
-      'timestamp': finaldate,
-      'GroupContact': groupLeadContact,
-      'name':groupLeadname,
-      'company':fetchedFieldName
-    });
-
-    for (int i = 0; i < numDropdowns; i++) {
-      await collectionRef.add(dropdownValues[i]);
-    }
-
-    for (int i = 0; i < numDropdownsvendor; i++) {
-      await collectionRefvendor.add({
-        'vendor': selectedDriverValue[i],
-        'timestamp': DateTime.now(),
-      });
-    }
-
-    for (int i = 0; i < numDropdownsvendor; i++) {
-      List<Map<String, dynamic>> dropdownStayArray = [];
-
-      for (int j = 0; j < numDropdowns; j++) {
-        Map<String, dynamic> dropdownValueMap = {
-          'company':fetchedFieldName,
-          'pax': pax,
-          'selectedDate': dropdownValues[j]['selectedDate'],
-          'dropdownValue': dropdownValues[j]['dropdownValue'],
-          'groupLeadContact': groupLeadContact,
-          'groupLeadname':groupLeadname
-        };
-        dropdownStayArray.add(dropdownValueMap);
-      }
-
-      await FirebaseFirestore.instance
-
-          .collection('DriverInfo')
-          .doc(selectedDriverValue[i]['Driver'])
-          .update({'Driver': FieldValue.arrayUnion(dropdownStayArray),'company':{fetchedFieldName},});
-    }
-
-    for (int i = 0; i < numDropdowns; i++) {
-      List<Map<String, dynamic>> dropdownStayArray = [];
-
-      for (int j = 0; j < numDropdownsvendor; j++) {
-        Map<String, dynamic> dropdownValueMap = {
-          'company':fetchedFieldName,
-          'pax': pax,
-          'selectedDate': dropdownValues[i]['selectedDate'],
-          'groupLeadContact': groupLeadContact,
-          'groupLeadname':groupLeadname
-        };
-        dropdownStayArray.add(dropdownValueMap);
-      }
-
-      await FirebaseFirestore.instance
-          .collection('StaysInfo')
-          .doc(dropdownValues[i]['dropdownValue'])
-          .update({'dropdownValue': FieldValue.arrayUnion(dropdownStayArray),'company':{fetchedFieldName},});
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Save Car Information>>'),
-    ));
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => SelectCar(
-          travellerid: travellerid,
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<void>(
-      future: fetchComapnyname(),
-      builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // Return a loading indicator while fetching the company name
-          return Scaffold(
-            backgroundColor: Colors.white,
-            appBar: AppBar(
-              title: Text('Create Itinery'),
-            ),
-            body: Center(
-              child: CircularProgressIndicator(),
+  void _showDateRangePicker(BuildContext context) {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+            height: 400, // you can adjust the height as needed
+            child: SfDateRangePicker(
+              onSelectionChanged: _onSelectionChanged,
+              selectionMode: DateRangePickerSelectionMode.range,
+              initialSelectedRange:
+              PickerDateRange(initialDateofTrip, finalDateofTrip),
+              minDate: DateTime(2000),
+              maxDate: DateTime(2100),
             ),
           );
-        } else if (snapshot.hasError) {
-          // Handle the error if fetching the company name fails
-          return Text('Error: ${snapshot.error}');
-        } else {
-          // The company name has been fetched successfully
-          // Continue building the widget tree
-          return Scaffold(
-            backgroundColor: Colors.grey[300],
-            appBar: AppBar(
-              title: Text('Create Itinery'),
-            ),
-            drawer: Drawer(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Colors.amberAccent,
-                    ),
-                    child: Column(
-                      children: [
-                        // Image.network(FirebaseAuth.instance.currentUser!.photoURL!,height: 100,width: 1000,),
-                        // SizedBox(height: 15,),
-                        // Text(FirebaseAuth.instance.currentUser!.displayName!),
-                      ],
-                    ),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.home,
-                      color: Colors.redAccent,
-                    ),
-                    title: const Text('Add Stays'),
-                    onTap: () {
-                      // Update the state of the app.
-                      // ...
-                      Navigator.pushNamed(context, MyRoutes.addStays);
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.drive_eta_rounded,
-                      color: Colors.redAccent,
-                    ),
-                    title: const Text('Add Vendors'),
-                    onTap: () {
-                      // Update the state of the app.
-                      // ...
-                      Navigator.pushNamed(context, MyRoutes.vendors);
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.people,
-                      color: Colors.redAccent,
-                    ),
-                    title: const Text('Travellers'),
-                    onTap: () {
-                      // Update the state of the app.
-                      // ...
-                      Navigator.pushNamed(context, MyRoutes.travellers);
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.done_all,
-                      color: Colors.redAccent,
-                    ),
-                    title: const Text('All Itenary'),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => Collections()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            body: Column(
-              children: [
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: SingleChildScrollView(
-                    physics: BouncingScrollPhysics(),
-                    child: Column(
-                      children: [
-
-                        SizedBox(height: 10),
-                        NeoBox(
-                          value: TextField(
-                            onChanged: (value) {
-                              try {
-                                int parsedValue = int.parse(value);
-                                if (parsedValue > 0) {
-                                  numDropdownsvendor = parsedValue;
-                                  _generateDropdownsforvendor();
-                                }
-                              } catch(e) {
-                                numDropdownsvendor = 0;
-                              }
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Enter number of Drivers',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                            ),
-                          ),
-                        ),
-                            SizedBox(height: 20),
-                            NeoBox(
-                              value: Row(
-                                children: [
-                                  Text('Initial Date: ',style: TextStyle(fontSize: 20),),
-                                  GestureDetector(
-                                    onTap: () async {
-                                      DateTime? pickedDate = await showDatePicker(
-                                        context: context,
-                                        initialDate: initialDate,
-                                        firstDate: DateTime(2000),
-                                        lastDate: DateTime(2100),
-                                      );
-                                      if (pickedDate != null) {
-                                        setState(() {
-                                          initialDate = pickedDate;
-                                          _generateDropdowns();
-                                        });
-                                      }
-                                    },
-                                    child: Text(
-                                      '${initialDate.toLocal().toString().split(' ')[0]}',
-                                      style: TextStyle(fontSize: 20, color: Colors.green),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 20),
-
-                            SizedBox(width: 10),
-                            NeoBox(
-                              value: Row(
-                                children: [
-                                  Text('Final Date: ',style: TextStyle(fontSize: 20),),
-                                  GestureDetector(
-                                    onTap: () async {
-                                      DateTime? pickedDate = await showDatePicker(
-                                        context: context,
-                                        initialDate: finaldate,
-                                        firstDate: DateTime(2000),
-                                        lastDate: DateTime(2100),
-                                      );
-                                      if (pickedDate != null) {
-                                        setState(() {
-                                          finaldate = pickedDate;
-                                          _generateDropdowns();
-                                        });
-                                      }
-                                    },
-                                    child: Text(
-                                      '${finaldate.toLocal().toString().split(' ')[0]}',
-                                      style: TextStyle(fontSize: 20, color: Colors.green),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-
-                        // TextField(
-                        //   keyboardType: TextInputType.number,
-                        //   onChanged: (value) {
-                        //     numDropdowns = int.parse(value);
-                        //     _generateDropdowns();
-                        //   },
-                        //   decoration: InputDecoration(
-                        //     hintText: 'Enter number of Days',
-                        //     border: OutlineInputBorder(
-                        //       borderRadius: BorderRadius.circular(15),
-                        //     ),
-                        //   ),
-                        // ),
-                        SizedBox(height: 20),
-
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                SizedBox(height: 10),
-
-                StreamBuilder<QuerySnapshot>(
-                  stream: vendorDropdownCollection.snapshots(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Text('Loading...');
-                    }
-                    return DropdownButton<String>(
-                      //  String vendordropdownValue = selectedVendorValue[document.id] ?? '';
-                      value: selectedVendorValue,
-                      items:
-                          snapshot.data!.docs.map((DocumentSnapshot document) {
-                        return DropdownMenuItem<String>(
-                          value: document.id,
-                          child: Text(document.id),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedVendorValue = newValue!;
-                        });
-                      },
-                    );
-                  },
-                ),
-                Expanded(
-                  child: FutureBuilder<QuerySnapshot>(
-                    future: dropdownsCollection.get(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
-                      }
-
-                      return ListView.builder(
-                        itemCount: numDropdowns,
-                        itemBuilder: (BuildContext context, int index) {
-                          return ListTile(
-                            leading: Text('Day ${index + 1} '),
-                            trailing: DropdownButton(
-                              value: dropdownValues[index]['dropdownValue'],
-                              items: snapshot.data!.docs
-                                  .map((DocumentSnapshot document) {
-                                return DropdownMenuItem(
-                                  value: document.get('name'),
-                                  child: Text(document.get('name')),
-                                );
-                              }).toList(),
-                              onChanged: (value) async {
-                                setState(() {
-                                  dropdownValues[index]['dropdownValue'] =
-                                      value;
-                                  dropdownValues[index]['selectedDate'] =
-                                      dropdownDates[index];
-                                });
-
-                                QuerySnapshot querySnapshot =
-                                    await dropdownsCollection
-                                        .where('name', isEqualTo: value)
-                                        .get();
-
-                                if (querySnapshot.docs.isNotEmpty) {
-                                  setState(() {
-                                    dropdownValues[index]['Location'] =
-                                        querySnapshot.docs[0]['location'];
-                                    dropdownValues[index]['pluscode'] =
-                                        querySnapshot.docs[0]['pluscode'];
-                                  });
-                                }
-                              },
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: FutureBuilder<QuerySnapshot>(
-                    future: vendorDropdownCollection
-                        .doc(selectedVendorValue)
-                        .collection(selectedVendorValue)
-                        .get(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
-                      }
-
-                      return ListView.builder(
-                        itemCount: numDropdownsvendor,
-                        itemBuilder: (BuildContext context, int index) {
-                          return ListTile(
-                            title: Text('Driver ${index + 1}'),
-                            trailing: DropdownButton(
-                              value: selectedDriverValue[index]['Driver'],
-                              items: snapshot.data!.docs
-                                  .map((DocumentSnapshot document) {
-                                return DropdownMenuItem(
-                                  value: document.get('drivername'),
-                                  child: Text(document.get('drivername')),
-                                );
-                              }).toList(),
-                              onChanged: (value) async {
-                                setState(() {
-                                  selectedDriverValue[index]['Driver'] = value;
-                                });
-                                QuerySnapshot querySnapshot =
-                                    await vendorDropdownCollection
-                                        .doc(selectedVendorValue)
-                                        .collection(selectedVendorValue)
-                                        .where('drivername', isEqualTo: value)
-                                        .get();
-                                if (querySnapshot.docs.isNotEmpty) {
-                                  setState(() {
-                                    selectedDriverValue[index]
-                                            ['DriverLicense'] =
-                                        querySnapshot.docs[0]['driverLicense'];
-                                    selectedDriverValue[index]['DriverPhone'] =
-                                        querySnapshot.docs[0]['driverphone'];
-                                  });
-                                }
-                              },
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: 60,
-                    width: 160,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Your onPressed function
-                        _saveToFirestore();
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Proceed',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          SizedBox(width: 10),
-                          Icon(Icons.arrow_forward_ios),
-                        ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        primary: Colors.blue,
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          );
-        }
-      },
-    );
+        });
   }
 }
-
-//DEfault Value for DRiver

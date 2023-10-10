@@ -1,71 +1,16 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:velocity_x/velocity_x.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class DriverManage extends StatefulWidget {
+class DriverTripsPage extends StatefulWidget {
   @override
-  _DriverManageState createState() => _DriverManageState();
+  _DriverTripsPageState createState() => _DriverTripsPageState();
 }
 
-
-class _DriverManageState extends State<DriverManage> {
-  List<Map<String, dynamic>> dropdownValueArray = [];
-  late String fetchedFieldName;
-
-  Future<String?> fetchComapnyname() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      String userId = user.uid;
-      DocumentSnapshot<Map<String, dynamic>> snapshot =
-      await FirebaseFirestore.instance.collection('users').doc(userId).get();
-
-      if (snapshot.exists) {
-        String? phone = snapshot.data()?['phone'] as String?;
-        if (phone != null) {
-          QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await FirebaseFirestore.instance.collection('number').get();
-
-          if (querySnapshot.docs.isNotEmpty) {
-            for (QueryDocumentSnapshot<Map<String, dynamic>> document
-            in querySnapshot.docs) {
-              List<dynamic> phoneArray = document.data()['phone'];
-              for (int i = 0; i < phoneArray.length; i++) {
-                if (phoneArray[i] is Map<String, dynamic>) {
-                  Map<String, dynamic> map =
-                  Map<String, dynamic>.from(phoneArray[i]);
-                  if (map.containsValue(phone)) {
-                    return map.keys.first;
-                  }
-                } else if (phoneArray[i] == phone) {
-                  return 'phone';
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  Future<void> _retrieveData(String phone) async {
-    print("fieldname :: $fetchedFieldName");
-    QuerySnapshot<Map<String, dynamic>> querySnapshot =
-    await FirebaseFirestore.instance
-        .collection(fetchedFieldName)
-        .doc('DriverInfo')
-        .collection('DriverInfo')
-        .where('phone', isEqualTo: phone)
-        .get();
-    querySnapshot.docs.forEach((doc) {
-      dropdownValueArray = List<Map<String, dynamic>>.from(
-          doc['Driver'] as List<dynamic>);
-    });
-    setState(() {}); // Trigger a rebuild after retrieving data
-  }
+class _DriverTripsPageState extends State<DriverTripsPage> {
+  final _phoneController = TextEditingController();
+  List<DocumentSnapshot> trips = [];
+  String? fetchedFieldName;
 
   @override
   void initState() {
@@ -73,123 +18,101 @@ class _DriverManageState extends State<DriverManage> {
     initializeData();
   }
 
-  Future<void> initializeData() async {
-    await fetchComapnyname().then((fieldName) {
-      if (fieldName != null) {
-        fetchedFieldName = fieldName;
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          String userId = user.uid;
-          FirebaseFirestore.instance
-              .collection('users')
-              .doc(userId)
-              .get()
-              .then((snapshot) {
-            if (snapshot.exists) {
-              String? phone = snapshot.data()?['phone'] as String?;
-              if (phone != null) {
-                _retrieveData(phone);
-              }
-            }
-          });
+  Future<void> fetchCompanyNameAndPhone() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null && user.phoneNumber != null) {
+      // Removing the country code from the user's phone number.
+      final userPhone = user.phoneNumber!.substring(3);
+      print('Fetching data for phone: $userPhone');
+
+      // Fetch the document named "hello" from the 'admin' collection.
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance.collection('admin').doc('hello').get();
+
+      if (docSnapshot.exists) {
+        final dataMap = docSnapshot.data() as Map<String, dynamic>?;
+        final usersData = dataMap?['userstype'] as List<dynamic>? ?? [];
+
+        for (var userData in usersData) {
+          if (userData['phone'] == userPhone) {
+            fetchedFieldName = userData['company'] as String? ?? 'Unknown';
+            _phoneController.text = userData['phone'] as String? ?? 'Unknown';
+            print('Company: $fetchedFieldName');
+            print('Phone: ${_phoneController.text}');
+            setState(() {}); // Refresh UI with the new data.
+            return;
+          }
         }
+        print('No matching phone number found in the userstype array');
+      } else {
+        print('Document "hello" does not exist in the admin collection');
       }
-    });
+    } else {
+      print('User is not logged in or phone number is null');
+    }
   }
 
 
+  Future<void> initializeData() async {
+    await fetchCompanyNameAndPhone();
+    _fetchTrips(_phoneController.text); // Fetch trips corresponding to the fetched phone number.
+  }
 
+  _fetchTrips(String phone) async {
+    if (phone.isNotEmpty) {
+      print('Fetching trips for phone: $phone');
+      // Fetch all itineraries
+      final tripDocs = await FirebaseFirestore.instance
+          .collection('Itineraries')
+          .get();
+
+      // Filter those that have the specific driver's phone in their driversDetails
+      final filteredTrips = tripDocs.docs.where((doc) {
+        final driversDetails = doc['driversDetails'] as List;
+        for (var driverDetail in driversDetails) {
+          if (driverDetail['phone'] == phone) {
+            return true;
+          }
+        }
+        return false;
+      }).toList();
+
+      setState(() {
+        trips = filteredTrips;
+      });
+      print('Number of trips found: ${trips.length}');
+    } else {
+      print('Phone is empty. Not fetching trips.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('My Drives '),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Image.asset(
-                "assets/images/myinfo.jpg",
-                fit: BoxFit.cover,
-                height: 300,
-              ),
-              SizedBox(height: 16.0),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: dropdownValueArray.length,
-                itemBuilder: (context, index) {
-                  DateTime selectedDate =
-                  (dropdownValueArray[index]['selectedDate'] as Timestamp)
-                      .toDate();
-                  String formattedDate =
-                  DateFormat('yyyy-MM-dd').format(selectedDate);
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 16.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.amberAccent,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(40.0),
-                          bottomLeft: Radius.circular(20.0)),
-                      color: Vx.amber50,
-                    ),
-                    child: ListTile(
-                      leading: Column(
-                        children: [
-                          SizedBox(height: 10,),
-                          Icon(Icons.home, color: Colors.lightGreen),
-                        ],
-                      ),
-                      title: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Date: " + formattedDate),
-                                Text("Pax: " +
-                                    dropdownValueArray[index]['pax']),
-                                Text("Phone: " +
-                                    dropdownValueArray[index]
-                                    ['groupLeadContact']),
-                                Text("Stay: " +
-                                    dropdownValueArray[index]
-                                    ['dropdownValue']),
-                              ],
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              // Redirect to call page with the group lead contact number
-                              String phoneNumber =
-                              dropdownValueArray[index]['groupLeadContact'];
-                              String ph = phoneNumber
-                                  .replaceAll(RegExp(r'[^0-9]'), '');
-                              String telUrl = 'tel:$ph';
-                              launch(telUrl);
-                            },
-                            child: Column(
-                              children: [SizedBox(height: 25,),
-                                Icon(Icons.call, color: Colors.blue),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
+      appBar: AppBar(title: Text("Driver Trips")),
+      body: Column(
+        children: [
+
+          Expanded(
+            child: ListView.builder(
+              itemCount: trips.length,
+              itemBuilder: (context, index) {
+                final trip = trips[index];
+                DateTime initialDate = trip['initialDateofTrip'].toDate();
+                DateTime finalDate = trip['finalDateofTrip'].toDate();
+                return ListTile(
+                  title: Text('Trip ${index + 1}'),
+                  subtitle: Column(
+                    children: [
+                      Text(
+                          'From:  ${initialDate.toLocal()} \nTo:  ${finalDate.toLocal()} \nTeam Name  ${trip['groupLeadname']} \nLead Phone  ${trip['groupLeadContact']}'),
+                    ],
+                  ),
+                );
+              },
+            ),
+          )
+        ],
       ),
     );
   }
